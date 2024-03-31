@@ -1,5 +1,5 @@
 from ProjectUtils.MessagingService.queue_definitions import channel, QUEUE_NAME
-from ProjectUtils.MessagingService.schemas import PropertyType
+from ProjectUtils.MessagingService.schemas import MessageType
 from .zooking_wrapper import ZookingAPIWrapper
 import json
 
@@ -9,11 +9,11 @@ def handle_recv(channel, method, properties, body):
 
     message = json.loads(body)
     msg_type = message.get("type")
-    if msg_type == PropertyType.CREATE_PROPERTY:
+    if msg_type == MessageType.PROPERTY_CREATE:
         wrapper.create_property(message.get("body"))
-    elif msg_type == PropertyType.UPDATE_PROPERTY:
+    elif msg_type == MessageType.PROPERTY_UPDATE:
         wrapper.update_property(message.get("body"))
-    elif msg_type == PropertyType.DELETE_PROPERTY:
+    elif msg_type == MessageType.PROPERTY_DELETE:
         wrapper.delete_property(message.get("body"))
 
     channel.basic_ack(delivery_tag)
