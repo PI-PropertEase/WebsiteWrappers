@@ -1,8 +1,8 @@
 from ProjectUtils.MessagingService.queue_definitions import channel, EXCHANGE_NAME
 from ProjectUtils.MessagingService.schemas import (
-    create_message,
-    PropertyMessage,
-    PropertyType,
+    MessageFactory,
+    MessageType,
+    to_json,
 )
 
 import random
@@ -13,13 +13,12 @@ from time import sleep
 from pydantic import BaseModel
 
 
-class PropertyInDB:
-    def __init__(self, id, address, name, curr_price, status):
-        self.id = id
-        self.address = address
-        self.name = name
-        self.curr_price = curr_price
-        self.status = status
+class PropertyInDB(BaseModel):
+    id: int
+    address: str
+    name: str
+    curr_price: float
+    status: str
 
 
 def generate_random_string(length=10):
@@ -31,21 +30,32 @@ def generate_random_string(length=10):
 def run():
     ids = [1, 2, 3, 4, 5, 6, 7, 8, 9, 10]
     while True:
-        body = create_message(
-            PropertyMessage(
-                random.choice([t.value for t in PropertyType]),
+        try:
+            msg_type = random.choice(
+                [
+                    MessageType.PROPERTY_CREATE,
+                    MessageType.PROPERTY_UPDATE,
+                    MessageType.PROPERTY_DELETE,
+                ]
+            )
+            body = MessageFactory.create_property(
+                msg_type,
                 PropertyInDB(
                     id=random.choice(ids),
                     address=generate_random_string(random.choice(ids)),
                     name=generate_random_string(random.choice(ids)),
                     curr_price=1234,
                     status="Free",
-                ).__dict__,
-            ),
-        )
-        channel.basic_publish(exchange=EXCHANGE_NAME, routing_key="", body=body)
-        print(f"Sent [x] {body}")
-        sleep(5)
+                ),
+            )
+
+            channel.basic_publish(
+                exchange=EXCHANGE_NAME, routing_key="", body=to_json(body)
+            )
+            print(f"Sent [x] {to_json(body)}")
+            sleep(5)
+        except ValueError as e:
+            print(f"Error occurred: {e}")
 
 
 if __name__ == "__main__":
