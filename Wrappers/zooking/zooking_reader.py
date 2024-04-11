@@ -1,4 +1,4 @@
-from ProjectUtils.MessagingService.queue_definitions import w2a_channel, API_EXCHANGE
+from ProjectUtils.MessagingService.queue_definitions import channel, EXCHANGE_NAME, WRAPPER_TO_APP_ROUTING_KEY
 from ProjectUtils.MessagingService.schemas import (
     MessageFactory,
     MessageType,
@@ -23,6 +23,7 @@ class Reservation(BaseModel):
     departure: str
     cost: float
 
+
 def dict_to_model(id, reservation, message_type):
     reservation_model= Reservation(
         property_id=reservation['property_id'],
@@ -36,8 +37,9 @@ def dict_to_model(id, reservation, message_type):
     )
     return MessageFactory.create_reservation_message(message_type, reservation_model)
 
+
 def run():
-    reservations = requests.get(url="http://localhost:8000/reservations").json()
+    reservations = requests.get(url="http://localhost:8000/reservations?email=alicez@gmail.com").json() #TODO: Remove hardcoded email
     global cachedReservations
 
     if hashlib.md5(str(cachedReservations).encode()).hexdigest() != hashlib.md5(str(reservations).encode()).hexdigest():
@@ -51,7 +53,7 @@ def run():
             elif hashlib.md5(str(cachedReservations[reservation_id]).encode()).hexdigest() != hashlib.md5(str(reservations[reservation_id]).encode()).hexdigest():
                 body = dict_to_model(reservation_id, reservations[reservation_id], MessageType.RESERVATION_UPDATE)
 
-        w2a_channel.basic_publish(exchange=API_EXCHANGE, routing_key="", body=to_json(body))
+        channel.basic_publish(exchange=EXCHANGE_NAME, routing_key=WRAPPER_TO_APP_ROUTING_KEY, body=to_json(body))
         cachedReservations = reservations
         print("new cache:\n")
         print(cachedReservations)
