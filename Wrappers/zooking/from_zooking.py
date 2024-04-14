@@ -57,7 +57,7 @@ def insert_property_service_id_from_external_service_id(external_id: int):
 
 def run():
     reservations = requests.get(
-        url="http://localhost:8000/reservations?email=joao.dourado1@gmail.com").json()  # TODO: Remove hardcoded email
+        url="http://localhost:8000/reservations?email=alicez@gmail.com").json()  # TODO: Remove hardcoded email
     global cachedReservations
 
     reservations_dict = {reservation["id"]: reservation for reservation in reservations}
