@@ -55,6 +55,7 @@ class ZookingAPIWrapper(BaseAPIWrapper):
         propertease_property["title"] = zooking_property.get("name")
         propertease_property["address"] = zooking_property.get("address")
         propertease_property["description"] = zooking_property.get("description")
+        propertease_property["price"] = zooking_property.get("curr_price")
         propertease_property["number_guests"] = zooking_property.get("number_of_guests")
         propertease_property["square_meters"] = zooking_property.get("square_meters")
         propertease_property["bedrooms"] = self.zooking_to_propertease_bedroom(
