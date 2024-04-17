@@ -5,6 +5,7 @@ from ProjectUtils.MessagingService.queue_definitions import (
     EXCHANGE_NAME,
     WRAPPER_ZOOKING_ROUTING_KEY,
 )
+from ..models import SessionLocal, IdMapperZooking, get_property_mapped_id
 
 
 class ZookingAPIWrapper(BaseAPIWrapper):
@@ -51,6 +52,7 @@ class ZookingAPIWrapper(BaseAPIWrapper):
 
     def property_from_zooking_to_propertease(self, zooking_property):
         propertease_property = {}
+        propertease_property["_id"] = get_property_mapped_id(zooking_property.get("id"))
         propertease_property["user_email"] = zooking_property.get("user_email")
         propertease_property["title"] = zooking_property.get("name")
         propertease_property["address"] = zooking_property.get("address")
