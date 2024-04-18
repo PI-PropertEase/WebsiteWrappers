@@ -14,3 +14,7 @@ class BaseAPIWrapper(ABC):
     @abstractmethod
     def delete_property(self, property):
         pass
+
+    @abstractmethod
+    def import_properties(self, user):
+        pass
