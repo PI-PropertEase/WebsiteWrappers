@@ -2,7 +2,7 @@ from ProjectUtils.MessagingService.queue_definitions import channel, EXCHANGE_NA
 from ProjectUtils.MessagingService.schemas import (
     MessageFactory,
     MessageType,
-    to_json,
+    to_json, Service,
 )
 
 import random
