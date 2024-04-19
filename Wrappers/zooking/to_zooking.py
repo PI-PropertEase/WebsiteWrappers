@@ -2,27 +2,33 @@ from ProjectUtils.MessagingService.queue_definitions import channel, EXCHANGE_NA
 from ProjectUtils.MessagingService.schemas import (
     MessageFactory,
     MessageType,
-    to_json,
+    to_json, from_json, Service,
 )
+from Wrappers.models import set_property_mapped_id
 from .zooking_wrapper import ZookingAPIWrapper
-import json
 
 
 def handle_recv(channel, method, properties, body):
     delivery_tag = method.delivery_tag
 
-    message = json.loads(body)
-    msg_type = message.get("type")
-    if msg_type == MessageType.PROPERTY_CREATE:
-        wrapper.create_property(message.get("body"))
-    elif msg_type == MessageType.PROPERTY_UPDATE:
-        wrapper.update_property(message.get("body"))
-    elif msg_type == MessageType.PROPERTY_DELETE:
-        wrapper.delete_property(message.get("body"))
-    elif msg_type == MessageType.PROPERTY_IMPORT:
-        properties = wrapper.import_properties(message.get("body"))
-        body = MessageFactory.create_import_properties_response_message(properties)
-        channel.basic_publish(exchange=EXCHANGE_NAME, routing_key=WRAPPER_TO_APP_ROUTING_KEY, body=to_json(body))
+    message = from_json(body)
+    print(message.__dict__)
+    match message.message_type:
+        case MessageType.PROPERTY_CREATE:
+            wrapper.create_property(message.body)
+        case MessageType.PROPERTY_UPDATE:
+            wrapper.update_property(message.body)
+        case MessageType.PROPERTY_DELETE:
+            wrapper.delete_property(message.body)
+        case MessageType.PROPERTY_CREATE:
+            wrapper.create_property(message.body)
+        case MessageType.PROPERTY_IMPORT:
+            properties = wrapper.import_properties(message.body)
+            body = MessageFactory.create_import_properties_response_message(Service.ZOOKING, properties)
+            channel.basic_publish(exchange=EXCHANGE_NAME, routing_key=WRAPPER_TO_APP_ROUTING_KEY, body=to_json(body))
+        case MessageType.PROPERTY_IMPORT_DUPLICATE:
+            body = message.body
+            set_property_mapped_id(Service.ZOOKING, body["old_internal_id"], body["new_internal_id"])
 
     channel.basic_ack(delivery_tag)
 

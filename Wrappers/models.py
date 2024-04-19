@@ -1,8 +1,10 @@
-from sqlalchemy import Column, Integer, ForeignKey, event, text
+from sqlalchemy import Column, Integer, event, text
 from sqlalchemy import create_engine
 from sqlalchemy.exc import SQLAlchemyError
 from sqlalchemy.ext.declarative import declarative_base
 from sqlalchemy.orm import sessionmaker
+
+from ProjectUtils.MessagingService.schemas import Service
 
 SQLALCHEMY_DATABASE_URL = "sqlite:///./idMapping.db"
 
@@ -26,6 +28,25 @@ class IdMapperZooking(Base):
     external_id = Column(Integer)
 
 
+class IdMapperClickAndGo(Base):
+    __tablename__ = "id_mapper_clickandgo"
+    internal_id = Column(Integer, primary_key=True)
+    external_id = Column(Integer)
+
+
+class IdMapperEarthStayin(Base):
+    __tablename__ = "id_mapper_earthstayin"
+    internal_id = Column(Integer, primary_key=True)
+    external_id = Column(Integer)
+
+
+table_by_service = {
+    Service.ZOOKING: IdMapperZooking,
+    Service.CLICKANDGO: IdMapperClickAndGo,
+    Service.EARTHSTAYIN: IdMapperEarthStayin
+}
+
+
 @event.listens_for(SequenceId.__table__, 'after_create')
 def insert_initial_id(target, connection, **kw):
     connection.execute(target.insert().values(auto_incremented=1))
@@ -44,15 +65,33 @@ def increment_before_insert(mapper, connection, target):
         session.rollback()
 
 
-
-
-def get_property_mapped_id(external_property_id):
+def get_property_mapped_id(service: Service, external_property_id):
     with SessionLocal() as db:
-        mapped_id_zooking = IdMapperZooking(external_id=external_property_id)
-        db.add(mapped_id_zooking)
+        IdMapperService = table_by_service[service]
+        mapped_id = IdMapperService(external_id=external_property_id)
+        db.add(mapped_id)
         db.commit()
-        db.refresh(mapped_id_zooking)
-        return mapped_id_zooking.internal_id
+        db.refresh(mapped_id)
+        return mapped_id.internal_id
+
+
+def set_property_mapped_id(service: Service, old_internal_id, new_internal_id):
+    with SessionLocal() as db:
+        IdMapperService = table_by_service[service]
+        property_with_same_internal_id = db.query(IdMapperService).get(new_internal_id)
+        property_to_update_or_delete = db.query(IdMapperService).get(old_internal_id)
+        if property_with_same_internal_id is not None:
+            # delete
+            print(f"\nold_internal_id: {old_internal_id}, new_internal_id: {new_internal_id}")
+            print("property_with_same_internal_id: ", property_with_same_internal_id.__dict__)
+            print("property_to_delete", property_to_update_or_delete.__dict__)
+            db.delete(property_to_update_or_delete)
+        else:
+            # update
+            print(f"\nold_internal_id: {old_internal_id}, new_internal_id: {new_internal_id}")
+            print("property_to_update", property_to_update_or_delete.__dict__)
+            property_to_update_or_delete.internal_id = new_internal_id
+        db.commit()
 
 
 Base.metadata.create_all(bind=engine)
