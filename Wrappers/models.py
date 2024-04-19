@@ -64,6 +64,30 @@ def increment_before_insert(mapper, connection, target):
         print(e)
         session.rollback()
 
+@event.listens_for(IdMapperClickAndGo, 'before_insert')
+def increment_before_insert(mapper, connection, target):
+    session = SessionLocal()
+    try:
+        with session.begin():
+            global_counter = session.execute(text("SELECT auto_incremented FROM sequence_id")).scalar()
+            target.internal_id = global_counter
+            session.execute(text("UPDATE sequence_id SET auto_incremented = auto_incremented + 1"))
+    except SQLAlchemyError as e:
+        print(e)
+        session.rollback()
+
+@event.listens_for(IdMapperEarthStayin, 'before_insert')
+def increment_before_insert(mapper, connection, target):
+    session = SessionLocal()
+    try:
+        with session.begin():
+            global_counter = session.execute(text("SELECT auto_incremented FROM sequence_id")).scalar()
+            target.internal_id = global_counter
+            session.execute(text("UPDATE sequence_id SET auto_incremented = auto_incremented + 1"))
+    except SQLAlchemyError as e:
+        print(e)
+        session.rollback()
+
 
 def get_property_mapped_id(service: Service, external_property_id):
     with SessionLocal() as db:
