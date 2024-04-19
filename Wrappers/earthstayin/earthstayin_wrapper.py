@@ -5,7 +5,7 @@ from ProjectUtils.MessagingService.queue_definitions import (
     EXCHANGE_NAME,
     WRAPPER_EARTHSTAYIN_ROUTING_KEY,
 )
-from ..models import IdMapperZooking, get_property_mapped_id
+from ..models import get_property_mapped_id, Service
 
 
 class EarthStayinAPIWrapper(BaseAPIWrapper):
@@ -52,7 +52,7 @@ class EarthStayinAPIWrapper(BaseAPIWrapper):
 
     def property_from_earthstayin_to_propertease(self, earthstayin_property):
         propertease_property = {}
-        propertease_property["_id"] = get_property_mapped_id(earthstayin_property.get("id"))
+        propertease_property["_id"] = get_property_mapped_id(Service.EARTHSTAYIN, earthstayin_property.get("id"))
         propertease_property["user_email"] = earthstayin_property.get("user_email")
         propertease_property["title"] = earthstayin_property.get("name")
         propertease_property["address"] = earthstayin_property.get("address")

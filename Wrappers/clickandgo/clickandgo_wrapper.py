@@ -5,7 +5,7 @@ from ProjectUtils.MessagingService.queue_definitions import (
     EXCHANGE_NAME,
     WRAPPER_CLICKANDGO_ROUTING_KEY,
 )
-from ..models import SessionLocal, IdMapperZooking, get_property_mapped_id
+from ..models import get_property_mapped_id, Service
 
 
 class CNGAPIWrapper(BaseAPIWrapper):
@@ -52,6 +52,7 @@ class CNGAPIWrapper(BaseAPIWrapper):
     def property_from_clickandgo_to_propertease(self, clickandgo_property):
         propertease_property = {}
         propertease_property["_id"] = get_property_mapped_id(
+            Service.CLICKANDGO,
             clickandgo_property.get("id")
         )
         propertease_property["user_email"] = clickandgo_property.get("user_email")
