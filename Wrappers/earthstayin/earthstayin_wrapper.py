@@ -89,17 +89,18 @@ class EarthStayinAPIWrapper(BaseAPIWrapper):
             "queen_bed": "queen",
             "twin_bed": "single",
         }
+
         bedrooms_converted = {}
-        for i in range(0, len(earthstayin_bedrooms)):
-            bedroom_name = "bedroom_" + str(i)
-            bedrooms_converted[bedroom_name] = {
+        for name, beds in earthstayin_bedrooms.items():
+            bedrooms_converted[name] = {
                 "beds": [
                     {
-                        "number_beds": earthstayin_bedrooms[i].get("number_beds"),
+                        "number_beds": bed.get("number_beds"),
                         "type": bedroom_type_map.get(
-                            earthstayin_bedrooms[i].get("bed_type")
+                            bed.get("bed_type")
                         ),
                     }
+                    for bed in beds if bed.get("bed_type") in bedroom_type_map
                 ]
             }
         return bedrooms_converted

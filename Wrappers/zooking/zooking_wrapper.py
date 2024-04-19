@@ -97,17 +97,18 @@ class ZookingAPIWrapper(BaseAPIWrapper):
             "king_bed": "king",
             "queen_bed": "queen",
         }
+
         bedrooms_converted = {}
-        for i in range(0, len(zooking_bedrooms)):
-            bedroom_name = "bedroom_" + str(i)
-            bedrooms_converted[bedroom_name] = {
+        for name, beds in zooking_bedrooms.items():
+            bedrooms_converted[name] = {
                 "beds": [
                     {
-                        "number_beds": zooking_bedrooms[i].get("number_beds"),
+                        "number_beds": bed.get("number_beds"),
                         "type": bedroom_type_map.get(
-                            zooking_bedrooms[i].get("bed_type")
+                            bed.get("bed_type")
                         ),
                     }
+                    for bed in beds if bed.get("bed_type") in bedroom_type_map
                 ]
             }
         return bedrooms_converted
