@@ -1,11 +1,13 @@
 import requests
+
+from .propertease_to_zooking import property_from_propertease_to_zooking
 from ..base_wrapper.api_wrapper import BaseAPIWrapper
 from ProjectUtils.MessagingService.queue_definitions import (
     channel,
     EXCHANGE_NAME,
-    WRAPPER_ZOOKING_ROUTING_KEY,
+    WRAPPER_ZOOKING_ROUTING_KEY, WRAPPER_BROADCAST_ROUTING_KEY,
 )
-from ..models import SessionLocal, IdMapperZooking, get_property_mapped_id, Service
+from ..models import SessionLocal, IdMapperZooking, get_property_mapped_id, Service, get_property_external_id
 
 
 class ZookingAPIWrapper(BaseAPIWrapper):
@@ -19,17 +21,26 @@ class ZookingAPIWrapper(BaseAPIWrapper):
             exchange=EXCHANGE_NAME,
             routing_key=WRAPPER_ZOOKING_ROUTING_KEY,
         )
+        channel.queue_bind(
+            queue=zooking_queue.method.queue,
+            exchange=EXCHANGE_NAME,
+            routing_key=WRAPPER_BROADCAST_ROUTING_KEY,
+        )
 
     def create_property(self, property):
         url = self.url + "properties"
         print("Creating property...")
         requests.post(url=url, json=property)
 
-    def update_property(self, property):
-        _id = property.get("id")
-        url = self.url + f"properties/{_id}"
+    def update_property(self, prop_internal_id: int, prop_update_parameters: dict):
+        # TODO does not match signature of base method (although it runs anyway)
+        url = self.url + f"properties/{get_property_external_id(Service.ZOOKING, prop_internal_id)}"
         print("Updating property...")
-        requests.put(url=url, json=property)
+        print("internal_id", prop_internal_id)
+        print("external_id", url)
+        print("update_parameters", prop_update_parameters)
+        property_from_propertease_to_zooking(prop_update_parameters)
+        requests.put(url=url, json=prop_update_parameters)
 
     def delete_property(self, property):
         _id = property.get("id")
@@ -49,9 +60,8 @@ class ZookingAPIWrapper(BaseAPIWrapper):
     """
         Converts property from the Zooking API schema to the Propertease schema.
     """
-
     def property_from_zooking_to_propertease(self, zooking_property):
-        propertease_property = {}
+        propertease_property = dict()
         propertease_property["_id"] = get_property_mapped_id(Service.ZOOKING, zooking_property.get("id"))
         propertease_property["user_email"] = zooking_property.get("user_email")
         propertease_property["title"] = zooking_property.get("name")
