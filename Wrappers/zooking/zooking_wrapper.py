@@ -34,13 +34,12 @@ class ZookingAPIWrapper(BaseAPIWrapper):
 
     def update_property(self, prop_internal_id: int, prop_update_parameters: dict):
         # TODO does not match signature of base method (although it runs anyway)
-        url = self.url + f"properties/{get_property_external_id(Service.ZOOKING, prop_internal_id)}"
+        external_id = get_property_external_id(Service.ZOOKING, prop_internal_id)
+        url = self.url + f"properties/{external_id}"
         print("Updating property...")
-        print("internal_id", prop_internal_id)
-        print("external_id", url)
+        print("internal_id", prop_internal_id, "external_id", external_id)
         print("update_parameters", prop_update_parameters)
-        property_from_propertease_to_zooking(prop_update_parameters)
-        requests.put(url=url, json=prop_update_parameters)
+        requests.put(url=url, json=property_from_propertease_to_zooking(prop_update_parameters))
 
     def delete_property(self, property):
         _id = property.get("id")
@@ -60,6 +59,7 @@ class ZookingAPIWrapper(BaseAPIWrapper):
     """
         Converts property from the Zooking API schema to the Propertease schema.
     """
+
     def property_from_zooking_to_propertease(self, zooking_property):
         propertease_property = dict()
         propertease_property["_id"] = get_property_mapped_id(Service.ZOOKING, zooking_property.get("id"))
@@ -82,7 +82,7 @@ class ZookingAPIWrapper(BaseAPIWrapper):
         # not supported in zooking
         propertease_property["house_rules"] = (
             self.empty_house_rules()
-        )  
+        )
         propertease_property["additional_info"] = zooking_property.get(
             "additional_info"
         )
