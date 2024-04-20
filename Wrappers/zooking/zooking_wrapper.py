@@ -1,14 +1,14 @@
 import requests
 
-from .propertease_to_zooking import ProperteaseToZooking
-from .zooking_to_propertease import ZookingToPropertease
+from Wrappers.zooking.converters.propertease_to_zooking import ProperteaseToZooking
+from Wrappers.zooking.converters.zooking_to_propertease import ZookingToPropertease
 from ..base_wrapper.api_wrapper import BaseAPIWrapper
 from ProjectUtils.MessagingService.queue_definitions import (
     channel,
     EXCHANGE_NAME,
     WRAPPER_ZOOKING_ROUTING_KEY, WRAPPER_BROADCAST_ROUTING_KEY,
 )
-from ..models import SessionLocal, IdMapperZooking, get_property_mapped_id, Service, get_property_external_id
+from ..models import Service, get_property_external_id
 
 
 class ZookingAPIWrapper(BaseAPIWrapper):
