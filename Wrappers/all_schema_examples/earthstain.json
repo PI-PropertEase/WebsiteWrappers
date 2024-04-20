@@ -1,0 +1,56 @@
+{
+  "id": 1,
+  "user_email": "alicez@gmail.com",
+  "name": "Conforto e Bem Estar",
+  "address": "Rua 91011",
+  "curr_price": 33,
+  "description": "A residência mais confortável",
+  "number_of_guests": 4,
+  "square_meters": 2000,
+  "bedrooms": {
+    "bedroom_1": [
+      {
+        "number_beds": 1,
+        "bed_type": "single_bed"
+      },
+      {
+        "number_beds": 1,
+        "bed_type": "single_bed"
+      }
+    ],
+    "bedroom_2": [
+      {
+        "number_beds": 1,
+        "bed_type": "single_bed"
+      },
+      {
+        "number_beds": 1,
+        "bed_type": "single_bed"
+      }
+    ]
+  },
+  "bathrooms": [
+    {
+      "name": "bathroom_groundfloor",
+      "bathroom_fixtures": [
+        "toilet",
+        "tub"
+      ]
+    }
+  ],
+  "amenities": [
+    "AC",
+    "free_wifi"
+  ],
+  "accessibilities": [
+    "ramp"
+  ],
+  "additional_info": "Recebem um rebuçado",
+  "house_rules": {
+    "checkin_time": "14:30-23:59",
+    "checkout_time": "00:00-11:30",
+    "smoking_allowed": true,
+    "rest_time": "22:30",
+    "pets_allowed": true
+  }
+}

@@ -1,0 +1,49 @@
+{
+  "id": 1,
+  "user_email": "alicez@gmail.com",
+  "name": "Poente Azul",
+  "address": "Rua 5678",
+  "curr_price": 22,
+  "description": "Interesting house",
+  "guest_num": 5,
+  "house_area": 200,
+  "bedrooms": {
+    "bedroom_1": [
+      {
+        "number_beds": 2,
+        "bed_type": "king"
+      }
+    ]
+  },
+  "bathrooms": [
+    {
+      "bathroom_fixtures": [
+        "toilet",
+        "tub"
+      ]
+    }
+  ],
+  "available_amenities": [
+    "AC",
+    "patio",
+    "wifi_free"
+  ],
+  "house_rules": {
+    "check_in": "16:00-23:59",
+    "check_out": "00:00-10:00",
+    "smoking_allowed": false,
+    "parties_allowed": true,
+    "rest_time": "22:00-08:00",
+    "pets_allowed": true
+  },
+  "additional_info": "Somos fixes",
+  "cancellation_policy": "Não há reembolsos",
+  "house_manager": {
+    "name": "Alice Zqt",
+    "phone_number": "+351920920920",
+    "languages": [
+      "Portuguese",
+      "English"
+    ]
+  }
+}
