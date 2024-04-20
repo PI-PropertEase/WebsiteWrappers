@@ -1,5 +1,5 @@
 from ProjectUtils.MessagingService.schemas import Service
-from Wrappers.models import get_property_mapped_id
+from Wrappers.models import set_and_get_property_internal_id
 
 
 class ZookingToPropertease:
@@ -7,7 +7,7 @@ class ZookingToPropertease:
     @staticmethod
     def convert_property(zooking_property):
         propertease_property = dict()
-        propertease_property["_id"] = get_property_mapped_id(Service.ZOOKING, zooking_property.get("id"))
+        propertease_property["_id"] = set_and_get_property_internal_id(Service.ZOOKING, zooking_property.get("id"))
         propertease_property["user_email"] = zooking_property.get("user_email")
         propertease_property["title"] = zooking_property.get("name")
         propertease_property["address"] = zooking_property.get("address")
