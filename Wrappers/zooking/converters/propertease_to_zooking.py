@@ -18,8 +18,8 @@ class ProperteaseToZooking:
         zooking_property["number_of_guests"] = propertease_property.get("number_guests")
         zooking_property["square_meters"] = propertease_property.get("square_meters")
         zooking_property["bedrooms"] = None \
-            if (propertease_bedrooms := ProperteaseToZooking.convert_bedrooms(propertease_property.get("bedrooms"))) is None \
-            else propertease_bedrooms
+            if (propertease_bedrooms := propertease_property.get("bedrooms")) is None \
+            else ProperteaseToZooking.convert_bedrooms(propertease_bedrooms)
         zooking_property["bathrooms"] = None \
             if (propertease_bathrooms := propertease_property.get("bathrooms")) is None \
             else ProperteaseToZooking.convert_bathrooms(propertease_bathrooms)
