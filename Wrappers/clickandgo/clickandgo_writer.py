@@ -4,11 +4,10 @@ from ProjectUtils.MessagingService.schemas import (
     MessageType,
     to_json,
     Service,
-    from_json
+    from_json,
 )
 from Wrappers.models import set_property_mapped_id
-from .earthstayin_wrapper import EarthStayinAPIWrapper
-import json
+from .clickandgo_wrapper import CNGAPIWrapper
 
 
 def handle_recv(channel, method, properties, body):
@@ -16,20 +15,21 @@ def handle_recv(channel, method, properties, body):
 
     message = from_json(body)
     match message.message_type:
-        case MessageType.PROPERTY_CREATE:
+        case MessageType.PROPERTY_CREATE: 
             wrapper.create_property(message.body)
         case MessageType.PROPERTY_UPDATE:
-            wrapper.update_property(message.body)
+            body = message.body
+            wrapper.update_property(body["internal_id"], body["update_parameters"])
         case MessageType.PROPERTY_DELETE:
             wrapper.delete_property(message.body)
         case MessageType.PROPERTY_IMPORT:
             properties = wrapper.import_properties(message.body)
-            body = MessageFactory.create_import_properties_response_message(Service.EARTHSTAYIN, properties)
+            body = MessageFactory.create_import_properties_response_message(Service.CLICKANDGO, properties)
             channel.basic_publish(exchange=EXCHANGE_NAME, routing_key=WRAPPER_TO_APP_ROUTING_KEY, body=to_json(body))
         case MessageType.PROPERTY_IMPORT_DUPLICATE:
             body = message.body
             print("body from DUPLICATE PROPERTY:", body)
-            set_property_mapped_id(Service.EARTHSTAYIN, body["old_internal_id"], body["new_internal_id"])
+            set_property_mapped_id(Service.CLICKANDGO, body["old_internal_id"], body["new_internal_id"])            
 
     channel.basic_ack(delivery_tag)
 
@@ -43,5 +43,5 @@ def run():
 
 
 if __name__ == "__main__":
-    wrapper = EarthStayinAPIWrapper()
+    wrapper = CNGAPIWrapper()
     run()

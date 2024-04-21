@@ -1,0 +1,42 @@
+{
+  "id": 1,
+  "user_email": "alicez@gmail.com",
+  "name": "Poente Azul",
+  "address": "Rua 5678",
+  "curr_price": 24,
+  "description": "A casa mais azul desde 1999",
+  "number_of_guests": 4,
+  "square_meters": 2000,
+  "bedrooms": {
+    "bedroom_1": [
+      {
+        "number_beds": 2,
+        "bed_type": "king_bed"
+      },
+      {
+        "number_beds": 1,
+        "bed_type": "single_bed"
+      },
+      {
+        "number_beds": 1,
+        "bed_type": "queen_bed"
+      }
+    ]
+  },
+  "bathrooms": [
+    {
+      "name": "bathroom_groundfloor",
+      "bathroom_fixtures": [
+        "toilet",
+        "tub",
+        "shower"
+      ]
+    }
+  ],
+  "amenities": [
+    "AC",
+    "wifi",
+    "open_parking"
+  ],
+  "additional_info": "Se cá aparecerem, recebem um rebuçado"
+}

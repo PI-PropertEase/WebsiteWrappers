@@ -17,7 +17,8 @@ def handle_recv(channel, method, properties, body):
         case MessageType.PROPERTY_CREATE:
             wrapper.create_property(message.body)
         case MessageType.PROPERTY_UPDATE:
-            wrapper.update_property(message.body)
+            body = message.body
+            wrapper.update_property(body["internal_id"], body["update_parameters"])
         case MessageType.PROPERTY_DELETE:
             wrapper.delete_property(message.body)
         case MessageType.PROPERTY_CREATE:
