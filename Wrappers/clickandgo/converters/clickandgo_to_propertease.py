@@ -1,20 +1,13 @@
 from ProjectUtils.MessagingService.schemas import Service
+from Wrappers.base_wrapper.utils import invert_map
+from Wrappers.clickandgo.converters.propertease_to_clickandgo import ProperteaseToClickandgo
 from Wrappers.models import set_and_get_property_internal_id
 
 
 class ClickandgoToPropertease:
-    bedroom_type_map = {
-        "single": "single",
-        "king": "king",
-        "queen": "queen",
-        "twin": "single",
-    }
-    fixtures_map = {"tub": "bathtub", "shower": "shower", "toilet": "toilet"}
-    amenities_map = {
-        "AC": "air_conditioner",
-        "wifi_free": "free_wifi",
-        "parking": "parking_space",
-    }
+    bedroom_type_map = invert_map(ProperteaseToClickandgo.bedroom_type_map)
+    fixtures_map = invert_map(ProperteaseToClickandgo.fixtures_map)
+    amenities_map = invert_map(ProperteaseToClickandgo.amenities_map)
 
     @staticmethod
     def convert_property(clickandgo_property):

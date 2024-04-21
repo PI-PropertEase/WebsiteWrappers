@@ -1,19 +1,13 @@
 from ProjectUtils.MessagingService.schemas import Service
+from Wrappers.base_wrapper.utils import invert_map
 from Wrappers.models import set_and_get_property_internal_id
+from Wrappers.zooking.converters.propertease_to_zooking import ProperteaseToZooking
 
 
 class ZookingToPropertease:
-    bedroom_type_map = {
-        "single_bed": "single",
-        "king_bed": "king",
-        "queen_bed": "queen",
-    }
-    fixtures_map = {"tub": "bathtub", "shower": "shower", "toilet": "toilet"}
-    amenities_map = {
-        "AC": "air_conditioner",
-        "wifi": "free_wifi",
-        "open_parking": "parking_space",
-    }
+    bedroom_type_map = invert_map(ProperteaseToZooking.bedroom_type_map)
+    fixtures_map = invert_map(ProperteaseToZooking.bedroom_type_map)
+    amenities_map = invert_map(ProperteaseToZooking.amenities_map)
 
     @staticmethod
     def convert_property(zooking_property):

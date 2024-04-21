@@ -1,20 +1,13 @@
 from ProjectUtils.MessagingService.schemas import Service
+from Wrappers.base_wrapper.utils import invert_map
+from Wrappers.earthstayin.converters.propertease_to_earthstayin import ProperteaseToEarthsayin
 from Wrappers.models import set_and_get_property_internal_id
 
 
 class EarthstayinToPropertease:
-    bedroom_type_map = {
-        "single_bed": "single",
-        "king_bed": "king",
-        "queen_bed": "queen",
-        "twin_bed": "single",
-    }
-    fixtures_map = {"tub": "bathtub", "shower": "shower", "toilet": "toilet", "bidet": "bidet"}
-    amenities_map = {
-        "AC": "air_conditioner",
-        "free_wifi": "free_wifi",
-        "car_parking": "parking_space",
-    }
+    bedroom_type_map = invert_map(ProperteaseToEarthsayin.bedroom_type_map)
+    fixtures_map = invert_map(ProperteaseToEarthsayin.fixtures_map)
+    amenities_map = invert_map(ProperteaseToEarthsayin.amenities_map)
 
     @staticmethod
     def convert_property(earthstayin_property):
