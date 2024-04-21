@@ -167,14 +167,14 @@ def increment_before_insert(mapper, connection, target):
 
 def get_property_external_id(service: Service, internal_property_id: int) -> int:
     with SessionLocal() as db:
-        IdMapperService = property_id_mapper_by_service[service]
-        return db.query(IdMapperService).get(internal_property_id).external_id
+        PropertyIdMapper = property_id_mapper_by_service[service]
+        return db.query(PropertyIdMapper).get(internal_property_id).external_id
 
 
 def set_and_get_property_internal_id(service: Service, external_property_id):
     with SessionLocal() as db:
-        IdMapperService = property_id_mapper_by_service[service]
-        mapped_id = IdMapperService(external_id=external_property_id)
+        PropertyIdMapper = property_id_mapper_by_service[service]
+        mapped_id = PropertyIdMapper(external_id=external_property_id)
         db.add(mapped_id)
         db.commit()
         db.refresh(mapped_id)
