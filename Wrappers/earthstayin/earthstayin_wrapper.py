@@ -1,7 +1,7 @@
 import requests
 
 from .converters.earthstayin_to_propertease import EarthstayinToPropertease
-from .converters.propertease_to_earthstayin import ProperteaseToEarthsayin
+from .converters.propertease_to_earthstayin import ProperteaseToEarthstayin
 from ..base_wrapper.api_wrapper import BaseAPIWrapper
 from ProjectUtils.MessagingService.queue_definitions import (
     channel,
@@ -39,7 +39,7 @@ class EarthStayinAPIWrapper(BaseAPIWrapper):
         print("Updating property...")
         print("internal_id", prop_internal_id, "external_id", external_id)
         print("update_parameters", prop_update_parameters)
-        requests.put(url=url, json=ProperteaseToEarthsayin.convert_property(prop_update_parameters))
+        requests.put(url=url, json=ProperteaseToEarthstayin.convert_property(prop_update_parameters))
 
     def delete_property(self, property):
         _id = property.get("id")

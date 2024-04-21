@@ -6,7 +6,7 @@ from Wrappers.zooking.converters.propertease_to_zooking import ProperteaseToZook
 
 class ZookingToPropertease:
     bedroom_type_map = invert_map(ProperteaseToZooking.bedroom_type_map)
-    fixtures_map = invert_map(ProperteaseToZooking.bedroom_type_map)
+    fixtures_map = invert_map(ProperteaseToZooking.fixtures_map)
     amenities_map = invert_map(ProperteaseToZooking.amenities_map)
 
     @staticmethod

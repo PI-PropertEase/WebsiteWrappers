@@ -1,13 +1,13 @@
 from ProjectUtils.MessagingService.schemas import Service
 from Wrappers.base_wrapper.utils import invert_map
-from Wrappers.earthstayin.converters.propertease_to_earthstayin import ProperteaseToEarthsayin
+from Wrappers.earthstayin.converters.propertease_to_earthstayin import ProperteaseToEarthstayin
 from Wrappers.models import set_and_get_property_internal_id
 
 
 class EarthstayinToPropertease:
-    bedroom_type_map = invert_map(ProperteaseToEarthsayin.bedroom_type_map)
-    fixtures_map = invert_map(ProperteaseToEarthsayin.fixtures_map)
-    amenities_map = invert_map(ProperteaseToEarthsayin.amenities_map)
+    bedroom_type_map = invert_map(ProperteaseToEarthstayin.bedroom_type_map)
+    fixtures_map = invert_map(ProperteaseToEarthstayin.fixtures_map)
+    amenities_map = invert_map(ProperteaseToEarthstayin.amenities_map)
 
     @staticmethod
     def convert_property(earthstayin_property):
