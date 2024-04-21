@@ -8,7 +8,7 @@ class BaseAPIWrapper(ABC):
         pass
 
     @abstractmethod
-    def update_property(self, property):
+    def update_property(self, prop_internal_id: int, prop_update_parameters: dict):
         pass
 
     @abstractmethod

@@ -34,7 +34,6 @@ class ZookingAPIWrapper(BaseAPIWrapper):
         requests.post(url=url, json=property)
 
     def update_property(self, prop_internal_id: int, prop_update_parameters: dict):
-        # TODO does not match signature of base method (although it runs anyway)
         external_id = get_property_external_id(Service.ZOOKING, prop_internal_id)
         url = self.url + f"properties/{external_id}"
         print("Updating property...")
