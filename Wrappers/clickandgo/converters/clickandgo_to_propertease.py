@@ -3,6 +3,18 @@ from Wrappers.models import set_and_get_property_internal_id
 
 
 class ClickandgoToPropertease:
+    bedroom_type_map = {
+        "single": "single",
+        "king": "king",
+        "queen": "queen",
+        "twin": "single",
+    }
+    fixtures_map = {"tub": "bathtub", "shower": "shower", "toilet": "toilet"}
+    amenities_map = {
+        "AC": "air_conditioner",
+        "wifi_free": "free_wifi",
+        "parking": "parking_space",
+    }
 
     @staticmethod
     def convert_property(clickandgo_property):
@@ -37,36 +49,28 @@ class ClickandgoToPropertease:
 
     @staticmethod
     def convert_bedrooms(clickandgo_bedrooms):
-        bedroom_type_map = {
-            "single": "single",
-            "king": "king",
-            "queen": "queen",
-            "twin": "single",
-        }
-
         bedrooms_converted = {}
         for name, beds in clickandgo_bedrooms.items():
             bedrooms_converted[name] = {
                 "beds": [
                     {
                         "number_beds": bed.get("number_beds"),
-                        "type": bedroom_type_map.get(
+                        "type": ClickandgoToPropertease.bedroom_type_map.get(
                             bed.get("bed_type")
                         ),
                     }
-                    for bed in beds if bed.get("bed_type") in bedroom_type_map
+                    for bed in beds if bed.get("bed_type") in ClickandgoToPropertease.bedroom_type_map
                 ]
             }
         return bedrooms_converted
 
     @staticmethod
     def convert_bathrooms(clickandgo_bathrooms):
-        fixtures_map = {"tub": "bathtub", "shower": "shower", "toilet": "toilet"}
         bathrooms_converted = {}
         for bathroom in clickandgo_bathrooms:
             bathrooms_converted[bathroom.get("name")] = {
                 "fixtures": [
-                    fixtures_map[cng_fixture]
+                    ClickandgoToPropertease.fixtures_map[cng_fixture]
                     for cng_fixture in bathroom.get("bathroom_fixtures")
                 ]
             }
@@ -74,16 +78,11 @@ class ClickandgoToPropertease:
 
     @staticmethod
     def convert_amenities(clickandgo_amenities):
-        amenities_map = {
-            "AC": "air_conditioner",
-            "wifi_free": "free_wifi",
-            "parking": "parking_space",
-        }
         # there might be amenities in clickandgo that don't exist in propertease,
         return [
-            amenities_map[cng_amen]
+            ClickandgoToPropertease.amenities_map[cng_amen]
             for cng_amen in clickandgo_amenities
-            if cng_amen in amenities_map.keys()
+            if cng_amen in ClickandgoToPropertease.amenities_map.keys()
         ]
 
     @staticmethod

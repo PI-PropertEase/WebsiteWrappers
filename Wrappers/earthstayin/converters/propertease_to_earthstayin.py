@@ -3,6 +3,17 @@ from Wrappers.models import get_property_external_id
 
 
 class ProperteaseToEarthsayin:
+    bedroom_type_map = {
+        "single": "single_bed",
+        "king": "king_bed",
+        "queen": "queen_bed"
+    }
+    fixtures_map = {"tub": "bathtub", "shower": "shower", "toilet": "toilet", "bidet": "bidet"}
+    amenities_map = {
+        "air_conditioner": "AC",
+        "free_wifi": "free_wifi",
+        "parking_space": "car_parking",
+    }
 
     @staticmethod
     def convert_property(propertease_property):
@@ -41,19 +52,13 @@ class ProperteaseToEarthsayin:
 
     @staticmethod
     def convert_bedrooms(propertease_bedrooms):
-        bedroom_type_map = {
-            "single": "single_bed",
-            "king": "king_bed",
-            "queen": "queen_bed"
-        }
-
         converted_bedrooms = {}
         for bedroom_name in propertease_bedrooms:
             converted_bedrooms[bedroom_name] = []
             for bed in propertease_bedrooms[bedroom_name]["beds"]:
                 converted_bedrooms[bedroom_name].append({
                     "number_beds": bed.get("number_beds"),
-                    "bed_type": bedroom_type_map.get(
+                    "bed_type": ProperteaseToEarthsayin.bedroom_type_map.get(
                         bed.get("type")
                     ),
                 })
@@ -61,7 +66,6 @@ class ProperteaseToEarthsayin:
 
     @staticmethod
     def convert_bathrooms(propertease_bathrooms):
-        fixtures_map = {"tub": "bathtub", "shower": "shower", "toilet": "toilet", "bidet": "bidet"}
 
         converted_bathrooms = []
         for bathroom_name in propertease_bathrooms:
@@ -69,21 +73,16 @@ class ProperteaseToEarthsayin:
                 "name": bathroom_name,
                 "bathroom_fixtures": [
                     converted_fixture for fixture in propertease_bathrooms[bathroom_name].get("fixtures")
-                    if (converted_fixture := fixtures_map.get(fixture)) is not None
+                    if (converted_fixture := ProperteaseToEarthsayin.fixtures_map.get(fixture)) is not None
                 ]
             })
         return converted_bathrooms
 
     @staticmethod
     def convert_amenities(propertease_amenities):
-        amenities_map = {
-            "air_conditioner": "AC",
-            "free_wifi": "free_wifi",
-            "parking_space": "car_parking",
-        }
         return [
             converted_amenity for amenity in propertease_amenities
-            if (converted_amenity := amenities_map.get(amenity)) is not None
+            if (converted_amenity := ProperteaseToEarthsayin.amenities_map.get(amenity)) is not None
         ]
 
     @staticmethod

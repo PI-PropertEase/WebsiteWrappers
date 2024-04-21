@@ -3,6 +3,17 @@ from Wrappers.models import get_property_external_id
 
 
 class ProperteaseToZooking:
+    bedroom_type_map = {
+        "single": "single_bed",
+        "king": "king_bed",
+        "queen": "queen_bed",
+    }
+    fixtures_map = {"bathtub": "tub", "shower": "shower", "toilet": "toilet"}
+    amenities_map = {
+        "air_conditioner": "AC",
+        "free_wifi": "wifi",
+        "parking_space": "open_parking",
+    }
 
     @staticmethod
     def convert_property(propertease_property):
@@ -37,18 +48,13 @@ class ProperteaseToZooking:
 
     @staticmethod
     def convert_bedrooms(propertease_bedrooms):
-        bedroom_type_map = {
-            "single": "single_bed",
-            "king": "king_bed",
-            "queen": "queen_bed",
-        }
         converted_bedrooms = {}
         for bedroom_name in propertease_bedrooms:
             converted_bedrooms[bedroom_name] = []
             for bed in propertease_bedrooms[bedroom_name]["beds"]:
                 converted_bedrooms[bedroom_name].append({
                     "number_beds": bed.get("number_beds"),
-                    "bed_type": bedroom_type_map.get(
+                    "bed_type": ProperteaseToZooking.bedroom_type_map.get(
                         bed.get("type")
                     ),
                 })
@@ -56,26 +62,20 @@ class ProperteaseToZooking:
 
     @staticmethod
     def convert_bathrooms(propertease_bathrooms):
-        fixtures_map = {"bathtub": "tub", "shower": "shower", "toilet": "toilet"}
         converted_bathrooms = []
         for bathroom_name in propertease_bathrooms:
             converted_bathrooms.append({
                 "name": bathroom_name,
                 "bathroom_fixtures": [
                     converted_fixture for fixture in propertease_bathrooms[bathroom_name].get("fixtures")
-                    if (converted_fixture := fixtures_map.get(fixture)) is not None
+                    if (converted_fixture := ProperteaseToZooking.fixtures_map.get(fixture)) is not None
                 ]
             })
         return converted_bathrooms
 
     @staticmethod
     def convert_amenities(propertease_amenities):
-        amenities_map = {
-            "air_conditioner": "AC",
-            "free_wifi": "wifi",
-            "parking_space": "open_parking",
-        }
         return [
             converted_amenity for amenity in propertease_amenities
-            if (converted_amenity := amenities_map.get(amenity)) is not None
+            if (converted_amenity := ProperteaseToZooking.amenities_map.get(amenity)) is not None
         ]

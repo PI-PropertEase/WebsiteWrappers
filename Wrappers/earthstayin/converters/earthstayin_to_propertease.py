@@ -3,6 +3,18 @@ from Wrappers.models import set_and_get_property_internal_id
 
 
 class EarthstayinToPropertease:
+    bedroom_type_map = {
+        "single_bed": "single",
+        "king_bed": "king",
+        "queen_bed": "queen",
+        "twin_bed": "single",
+    }
+    fixtures_map = {"tub": "bathtub", "shower": "shower", "toilet": "toilet", "bidet": "bidet"}
+    amenities_map = {
+        "AC": "air_conditioner",
+        "free_wifi": "free_wifi",
+        "car_parking": "parking_space",
+    }
 
     @staticmethod
     def convert_property(earthstayin_property):
@@ -37,36 +49,28 @@ class EarthstayinToPropertease:
 
     @staticmethod
     def convert_bedrooms(earthstayin_bedrooms):
-        bedroom_type_map = {
-            "single_bed": "single",
-            "king_bed": "king",
-            "queen_bed": "queen",
-            "twin_bed": "single",
-        }
-
         bedrooms_converted = {}
         for name, beds in earthstayin_bedrooms.items():
             bedrooms_converted[name] = {
                 "beds": [
                     {
                         "number_beds": bed.get("number_beds"),
-                        "type": bedroom_type_map.get(
+                        "type": EarthstayinToPropertease.bedroom_type_map.get(
                             bed.get("bed_type")
                         ),
                     }
-                    for bed in beds if bed.get("bed_type") in bedroom_type_map
+                    for bed in beds if bed.get("bed_type") in EarthstayinToPropertease.bedroom_type_map
                 ]
             }
         return bedrooms_converted
 
     @staticmethod
     def convert_bathrooms(earthstayin_bathrooms):
-        fixtures_map = {"tub": "bathtub", "shower": "shower", "toilet": "toilet", "bidet": "bidet"}
         bathrooms_converted = {}
         for bathroom in earthstayin_bathrooms:
             bathrooms_converted[bathroom.get("name")] = {
                 "fixtures": [
-                    fixtures_map[earthstayin_fixture]
+                    EarthstayinToPropertease.fixtures_map[earthstayin_fixture]
                     for earthstayin_fixture in bathroom.get("bathroom_fixtures")
                 ]
             }
@@ -74,16 +78,11 @@ class EarthstayinToPropertease:
 
     @staticmethod
     def convert_amenities(earthstayin_amenities):
-        amenities_map = {
-            "AC": "air_conditioner",
-            "free_wifi": "free_wifi",
-            "car_parking": "parking_space",
-        }
         # there might be amenities in earthstayin that don't exist in propertease,
         return [
-            amenities_map[cng_amen]
+            EarthstayinToPropertease.amenities_map[cng_amen]
             for cng_amen in earthstayin_amenities
-            if cng_amen in amenities_map.keys()
+            if cng_amen in EarthstayinToPropertease.amenities_map.keys()
         ]
 
     @staticmethod
