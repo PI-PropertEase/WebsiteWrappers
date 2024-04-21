@@ -66,7 +66,6 @@ class ProperteaseToEarthsayin:
 
     @staticmethod
     def convert_bathrooms(propertease_bathrooms):
-
         converted_bathrooms = []
         for bathroom_name in propertease_bathrooms:
             converted_bathrooms.append({
