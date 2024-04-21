@@ -15,17 +15,17 @@
       },
       {
         "number_beds": 1,
-        "bed_type": "single_bed"
+        "bed_type": "king_bed"
       }
     ],
     "bedroom_2": [
       {
         "number_beds": 1,
-        "bed_type": "single_bed"
+        "bed_type": "queen_bed"
       },
       {
         "number_beds": 1,
-        "bed_type": "single_bed"
+        "bed_type": "twin_bed"
       }
     ]
   },
@@ -34,13 +34,16 @@
       "name": "bathroom_groundfloor",
       "bathroom_fixtures": [
         "toilet",
-        "tub"
+        "tub",
+        "shower",
+        "bidet"
       ]
     }
   ],
   "amenities": [
     "AC",
-    "free_wifi"
+    "free_wifi",
+    "car_parking"
   ],
   "accessibilities": [
     "ramp"

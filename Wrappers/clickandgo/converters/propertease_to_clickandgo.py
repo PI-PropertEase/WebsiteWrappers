@@ -30,7 +30,6 @@ class ProperteaseToClickandgo:
             if (propertease_house_rules := propertease_property.get("house_rules")) is None \
             else ProperteaseToClickandgo.convert_house_rules(propertease_house_rules)
         clickandgo_property["additional_info"] = propertease_property.get("additional_info")
-        print("clickandgo_property", clickandgo_property)
         clickandgo_property["house_manager"] = None \
             if (propertease_contacts := propertease_property.get("contacts")) is None \
             else ProperteaseToClickandgo.convert_contacts(propertease_contacts)
