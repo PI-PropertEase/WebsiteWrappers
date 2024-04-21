@@ -12,6 +12,18 @@
       {
         "number_beds": 2,
         "bed_type": "king"
+      },
+      {
+        "number_beds": 1,
+        "bed_type": "single"
+      },
+      {
+        "number_beds": 1,
+        "bed_type": "queen"
+      },
+      {
+        "number_beds": 1,
+        "bed_type": "twin"
       }
     ]
   },
@@ -19,14 +31,16 @@
     {
       "bathroom_fixtures": [
         "toilet",
-        "tub"
+        "tub",
+        "shower"
       ]
     }
   ],
   "available_amenities": [
     "AC",
     "patio",
-    "wifi_free"
+    "wifi_free",
+    "parking"
   ],
   "house_rules": {
     "check_in": "16:00-23:59",
