@@ -31,25 +31,25 @@ class SequenceIdReservations(Base):
 class PropertyIdMapperZooking(Base):
     __tablename__ = "property_id_mapper_zooking"
     internal_id = Column(Integer, primary_key=True)
-    external_id = Column(Integer)
+    external_id = Column(Integer, unique=True)
 
 
 class ReservationIdMapperZooking(Base):
     __tablename__ = "reservation_id_mapper_zooking"
     internal_id = Column(Integer, primary_key=True)
-    external_id = Column(Integer)
+    external_id = Column(Integer, unique=True)
 
 
 class PropertyIdMapperClickAndGo(Base):
     __tablename__ = "property_id_mapper_clickandgo"
     internal_id = Column(Integer, primary_key=True)
-    external_id = Column(Integer)
+    external_id = Column(Integer, unique=True)
 
 
 class ReservationIdMapperClickAndGo(Base):
     __tablename__ = "reservation_id_mapper_clickandgo"
     internal_id = Column(Integer, primary_key=True)
-    external_id = Column(Integer)
+    external_id = Column(Integer, unique=True)
 
 
 class PropertyIdMapperEarthStayin(Base):
@@ -61,7 +61,7 @@ class PropertyIdMapperEarthStayin(Base):
 class ReservationIdMapperEarthStayin(Base):
     __tablename__ = "reservation_id_mapper_earthstayin"
     internal_id = Column(Integer, primary_key=True)
-    external_id = Column(Integer)
+    external_id = Column(Integer, unique=True)
 
 
 property_id_mapper_by_service = {
@@ -92,9 +92,9 @@ def increment_before_insert(mapper, connection, target):
     session = SessionLocal()
     try:
         with session.begin():
-            global_counter = session.execute(text("SELECT auto_incremented FROM sequence_id")).scalar()
+            global_counter = session.execute(text("SELECT auto_incremented FROM sequence_id_properties")).scalar()
             target.internal_id = global_counter
-            session.execute(text("UPDATE sequence_id SET auto_incremented = auto_incremented + 1"))
+            session.execute(text("UPDATE sequence_id_properties SET auto_incremented = auto_incremented + 1"))
     except SQLAlchemyError as e:
         print(e)
         session.rollback()
@@ -105,9 +105,9 @@ def increment_before_insert(mapper, connection, target):
     session = SessionLocal()
     try:
         with session.begin():
-            global_counter = session.execute(text("SELECT auto_incremented FROM sequence_id")).scalar()
+            global_counter = session.execute(text("SELECT auto_incremented FROM sequence_id_properties")).scalar()
             target.internal_id = global_counter
-            session.execute(text("UPDATE sequence_id SET auto_incremented = auto_incremented + 1"))
+            session.execute(text("UPDATE sequence_id_properties SET auto_incremented = auto_incremented + 1"))
     except SQLAlchemyError as e:
         print(e)
         session.rollback()
@@ -118,9 +118,9 @@ def increment_before_insert(mapper, connection, target):
     session = SessionLocal()
     try:
         with session.begin():
-            global_counter = session.execute(text("SELECT auto_incremented FROM sequence_id")).scalar()
+            global_counter = session.execute(text("SELECT auto_incremented FROM sequence_id_properties")).scalar()
             target.internal_id = global_counter
-            session.execute(text("UPDATE sequence_id SET auto_incremented = auto_incremented + 1"))
+            session.execute(text("UPDATE sequence_id_properties SET auto_incremented = auto_incremented + 1"))
     except SQLAlchemyError as e:
         print(e)
         session.rollback()
@@ -131,9 +131,9 @@ def increment_before_insert(mapper, connection, target):
     session = SessionLocal()
     try:
         with session.begin():
-            global_counter = session.execute(text("SELECT auto_incremented FROM sequence_id")).scalar()
+            global_counter = session.execute(text("SELECT auto_incremented FROM sequence_id_reservations")).scalar()
             target.internal_id = global_counter
-            session.execute(text("UPDATE sequence_id SET auto_incremented = auto_incremented + 1"))
+            session.execute(text("UPDATE sequence_id_reservations SET auto_incremented = auto_incremented + 1"))
     except SQLAlchemyError as e:
         print(e)
         session.rollback()
@@ -144,9 +144,9 @@ def increment_before_insert(mapper, connection, target):
     session = SessionLocal()
     try:
         with session.begin():
-            global_counter = session.execute(text("SELECT auto_incremented FROM sequence_id")).scalar()
+            global_counter = session.execute(text("SELECT auto_incremented FROM sequence_id_reservations")).scalar()
             target.internal_id = global_counter
-            session.execute(text("UPDATE sequence_id SET auto_incremented = auto_incremented + 1"))
+            session.execute(text("UPDATE sequence_id_reservations SET auto_incremented = auto_incremented + 1"))
     except SQLAlchemyError as e:
         print(e)
         session.rollback()
@@ -157,9 +157,9 @@ def increment_before_insert(mapper, connection, target):
     session = SessionLocal()
     try:
         with session.begin():
-            global_counter = session.execute(text("SELECT auto_incremented FROM sequence_id")).scalar()
+            global_counter = session.execute(text("SELECT auto_incremented FROM sequence_id_reservations")).scalar()
             target.internal_id = global_counter
-            session.execute(text("UPDATE sequence_id SET auto_incremented = auto_incremented + 1"))
+            session.execute(text("UPDATE sequence_id_reservations SET auto_incremented = auto_incremented + 1"))
     except SQLAlchemyError as e:
         print(e)
         session.rollback()
@@ -169,6 +169,16 @@ def get_property_external_id(service: Service, internal_property_id: int) -> int
     with SessionLocal() as db:
         PropertyIdMapper = property_id_mapper_by_service[service]
         return db.query(PropertyIdMapper).get(internal_property_id).external_id
+
+
+def set_or_get_property_internal_id(service: Service, external_property_id: int) -> int:
+    with SessionLocal() as db:
+        PropertyIdMapper = property_id_mapper_by_service[service]
+        property_record = db.query(PropertyIdMapper).filter(PropertyIdMapper.external_id == external_property_id).first()
+        print("property_record", property_record)
+        if property_record is not None:
+            return property_record.internal_id
+        return set_and_get_property_internal_id(service, external_property_id)
 
 
 def set_and_get_property_internal_id(service: Service, external_property_id):
@@ -198,6 +208,18 @@ def set_property_mapped_id(service: Service, old_internal_id, new_internal_id):
             print("property_to_update", property_to_update_or_delete.__dict__)
             property_to_update_or_delete.internal_id = new_internal_id
         db.commit()
+
+
+def get_reservation_external_id(service: Service, internal_property_id: int) -> int:
+    with SessionLocal() as db:
+        ReservationIdMapper = reservation_id_mapper_by_service[service]
+        return db.query(ReservationIdMapper).get(internal_property_id).external_id
+
+
+def get_reservation_internal_id(service: Service, internal_property_id: int) -> int:
+    with SessionLocal() as db:
+        ReservationIdMapper = reservation_id_mapper_by_service[service]
+        return db.query(ReservationIdMapper).get(internal_property_id).internal_id
 
 
 def set_and_get_reservation_internal_id(service: Service, external_reservation_id):

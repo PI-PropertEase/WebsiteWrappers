@@ -57,7 +57,7 @@ class ZookingAPIWrapper(BaseAPIWrapper):
         return converted_properties
 
     def import_reservations(self, user):
-        url = self.url + "properties?email=" + user.get("email")
+        url = self.url + "reservations?email=" + user.get("email")
         print("Importing reservations...")
         zooking_reservations = requests.get(url=url).json()
         converted_properties = [
