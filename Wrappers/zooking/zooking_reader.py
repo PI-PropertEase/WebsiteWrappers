@@ -20,8 +20,8 @@ class Reservation(BaseModel):
     status: str
     client_name: str
     client_phone: str
-    begin_datetime: str
-    end_datetime: str
+    begin_datetime: datetime
+    end_datetime: datetime
     cost: float
     service: Service = Service.ZOOKING
 

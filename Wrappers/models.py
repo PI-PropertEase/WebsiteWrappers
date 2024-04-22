@@ -27,7 +27,7 @@ class SequenceId(Base):
 class IdMapper(Base):
     __abstract__ = True
     internal_id = Column(Integer, primary_key=True)
-    external_id = Column(Integer, unique=True)
+    external_id = Column(Integer)
 
 
 # Concrete Classes - SequenceId
