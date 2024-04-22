@@ -200,4 +200,33 @@ def set_property_mapped_id(service: Service, old_internal_id, new_internal_id):
         db.commit()
 
 
+def set_and_get_reservation_internal_id(service: Service, external_reservation_id):
+    with SessionLocal() as db:
+        ReservationIdMapper = reservation_id_mapper_by_service[service]
+        mapped_id = ReservationIdMapper(external_id=external_reservation_id)
+        db.add(mapped_id)
+        db.commit()
+        db.refresh(mapped_id)
+        return mapped_id.internal_id
+
+
+def set_reservation_mapped_id(service: Service, old_internal_id, new_internal_id):
+    with SessionLocal() as db:
+        ReservationIdMapper = reservation_id_mapper_by_service[service]
+        reservation_with_same_internal_id = db.query(ReservationIdMapper).get(new_internal_id)
+        reservation_to_update_or_delete = db.query(ReservationIdMapper).get(old_internal_id)
+        if reservation_with_same_internal_id is not None:
+            # delete
+            print(f"\nold_internal_id: {old_internal_id}, new_internal_id: {new_internal_id}")
+            print("reservation_with_same_internal_id: ", reservation_with_same_internal_id.__dict__)
+            print("reservation_to_delete", reservation_to_update_or_delete.__dict__)
+            db.delete(reservation_to_update_or_delete)
+        else:
+            # update
+            print(f"\nold_internal_id: {old_internal_id}, new_internal_id: {new_internal_id}")
+            print("reservation_to_update", reservation_to_update_or_delete.__dict__)
+            reservation_to_update_or_delete.internal_id = new_internal_id
+        db.commit()
+
+
 Base.metadata.create_all(bind=engine)

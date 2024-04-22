@@ -2,7 +2,7 @@ from ProjectUtils.MessagingService.queue_definitions import channel, EXCHANGE_NA
 from ProjectUtils.MessagingService.schemas import (
     MessageFactory,
     MessageType,
-    to_json,
+    to_json, Service,
 )
 import json
 import hashlib
@@ -23,11 +23,11 @@ class Reservation(BaseModel):
     begin_datetime: str
     end_datetime: str
     cost: float
-    service: str = "zooking"
+    service: Service = Service.ZOOKING
 
 
-def dict_to_model(reservation_id, reservation, message_type):
-    reservation_model = Reservation(
+def dict_to_reservation_model(reservation_id, reservation):
+    return Reservation(
         property_id=reservation['property_id'],
         status=reservation['status'],
         client_name=reservation['client_name'],
@@ -37,7 +37,6 @@ def dict_to_model(reservation_id, reservation, message_type):
         cost=reservation['cost'],
         id=reservation_id # TODO adicionar aqui mapeamento de id para reservas (!= do para propriedades)
     )
-    return MessageFactory.create_reservation_message(message_type, reservation_model)
 
 
 def run():
@@ -46,18 +45,23 @@ def run():
     global cachedReservations
 
     reservations_dict = {reservation["id"]: reservation for reservation in reservations}
+    created_reservations = []
+    updated_reservations = []
+    deleted_reservations = []
 
     if hashlib.md5(str(cachedReservations).encode()).hexdigest() != hashlib.md5(str(reservations_dict).encode()).hexdigest():
         print("A change occured (cache miss)")
         for reservation_id in reservations_dict:
             if reservation_id not in cachedReservations:
-                body = dict_to_model(reservation_id, reservations_dict[reservation_id], MessageType.RESERVATION_CREATE)
+                created_reservations.append(dict_to_reservation_model(reservation_id, reservations_dict[reservation_id]))
             elif reservation_id not in reservations_dict:
-                body = dict_to_model(reservation_id, cachedReservations[reservation_id], MessageType.RESERVATION_DELETE)
+                deleted_reservations.append(dict_to_reservation_model(reservation_id, cachedReservations[reservation_id]))
             elif hashlib.md5(str(cachedReservations[reservation_id]).encode()).hexdigest() != hashlib.md5(
                     str(reservations_dict[reservation_id]).encode()).hexdigest():
-                body = dict_to_model(reservation_id, reservations_dict[reservation_id], MessageType.RESERVATION_UPDATE)
+                updated_reservations.append(dict_to_reservation_model(reservation_id, reservations_dict[reservation_id]))
 
+        channel.basic_publish(exchange=EXCHANGE_NAME, routing_key=WRAPPER_TO_CALENDAR_ROUTING_KEY, body=to_json(MessageFactory.create_reservation_message()))
+        channel.basic_publish(exchange=EXCHANGE_NAME, routing_key=WRAPPER_TO_CALENDAR_ROUTING_KEY, body=to_json(body))
         channel.basic_publish(exchange=EXCHANGE_NAME, routing_key=WRAPPER_TO_CALENDAR_ROUTING_KEY, body=to_json(body))
         cachedReservations = reservations_dict
         print("new cache:\n")

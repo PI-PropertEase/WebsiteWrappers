@@ -24,9 +24,15 @@ def handle_recv(channel, method, properties, body):
         case MessageType.PROPERTY_CREATE:
             wrapper.create_property(message.body)
         case MessageType.PROPERTY_IMPORT:
-            properties = wrapper.import_properties(message.body)
-            body = MessageFactory.create_import_properties_response_message(Service.ZOOKING, properties)
-            channel.basic_publish(exchange=EXCHANGE_NAME, routing_key=WRAPPER_TO_APP_ROUTING_KEY, body=to_json(body))
+            body = message.body
+            properties = wrapper.import_properties(body)
+            channel.basic_publish(exchange=EXCHANGE_NAME, routing_key=WRAPPER_TO_APP_ROUTING_KEY, body=to_json(
+                MessageFactory.create_import_properties_response_message(Service.ZOOKING, properties)
+            ))
+            reservations = wrapper.import_reservations(body)
+            channel.basic_publish(exchange=EXCHANGE_NAME, routing_key=WRAPPER_TO_APP_ROUTING_KEY, body=to_json(
+                MessageFactory.create_import_properties_response_message(Service.ZOOKING, reservations)
+            ))
         case MessageType.PROPERTY_IMPORT_DUPLICATE:
             body = message.body
             set_property_mapped_id(Service.ZOOKING, body["old_internal_id"], body["new_internal_id"])

@@ -99,3 +99,8 @@ class ZookingToPropertease:
             "allow_pets": False,
         }
 
+    @staticmethod
+    def convert_reservation(reservation):
+        pass
+
+
