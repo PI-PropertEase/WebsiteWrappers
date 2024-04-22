@@ -1,5 +1,6 @@
 from sqlalchemy import Column, Integer, event, text
 from sqlalchemy import create_engine
+from sqlalchemy.event import listen
 from sqlalchemy.exc import SQLAlchemyError
 from sqlalchemy.ext.declarative import declarative_base
 from sqlalchemy.orm import sessionmaker
@@ -16,54 +17,47 @@ SessionLocal = sessionmaker(autocommit=False, autoflush=False, bind=engine)
 Base = declarative_base()
 
 
-class SequenceIdProperties(Base):
-    __tablename__ = "sequence_id_properties"
+# Abstract Classes
+class SequenceId(Base):
+    __abstract__ = True
     id = Column(Integer, primary_key=True)
     auto_incremented = Column(Integer)
 
 
-class SequenceIdReservations(Base):
-    __tablename__ = "sequence_id_reservations"
-    id = Column(Integer, primary_key=True)
-    auto_incremented = Column(Integer)
-
-
-class PropertyIdMapperZooking(Base):
-    __tablename__ = "property_id_mapper_zooking"
+class IdMapper(Base):
+    __abstract__ = True
     internal_id = Column(Integer, primary_key=True)
     external_id = Column(Integer, unique=True)
 
 
-class ReservationIdMapperZooking(Base):
-    __tablename__ = "reservation_id_mapper_zooking"
-    internal_id = Column(Integer, primary_key=True)
-    external_id = Column(Integer, unique=True)
+# Concrete Classes - SequenceId
+class SequenceIdProperties(SequenceId): __tablename__ = "sequence_id_properties"
 
 
-class PropertyIdMapperClickAndGo(Base):
-    __tablename__ = "property_id_mapper_clickandgo"
-    internal_id = Column(Integer, primary_key=True)
-    external_id = Column(Integer, unique=True)
+class SequenceIdReservations(SequenceId): __tablename__ = "sequence_id_reservations"
 
 
-class ReservationIdMapperClickAndGo(Base):
-    __tablename__ = "reservation_id_mapper_clickandgo"
-    internal_id = Column(Integer, primary_key=True)
-    external_id = Column(Integer, unique=True)
+# Concrete Classes - PropertyIdMappers
+class PropertyIdMapperZooking(IdMapper): __tablename__ = "property_id_mapper_zooking"
 
 
-class PropertyIdMapperEarthStayin(Base):
-    __tablename__ = "property_id_mapper_earthstayin"
-    internal_id = Column(Integer, primary_key=True)
-    external_id = Column(Integer)
+class PropertyIdMapperClickAndGo(IdMapper): __tablename__ = "property_id_mapper_clickandgo"
 
 
-class ReservationIdMapperEarthStayin(Base):
-    __tablename__ = "reservation_id_mapper_earthstayin"
-    internal_id = Column(Integer, primary_key=True)
-    external_id = Column(Integer, unique=True)
+class PropertyIdMapperEarthStayin(IdMapper): __tablename__ = "property_id_mapper_earthstayin"
 
 
+# Concrete Classes - ReservationIdMappers
+class ReservationIdMapperZooking(IdMapper): __tablename__ = "reservation_id_mapper_zooking"
+
+
+class ReservationIdMapperClickAndGo(IdMapper): __tablename__ = "reservation_id_mapper_clickandgo"
+
+
+class ReservationIdMapperEarthStayin(IdMapper): __tablename__ = "reservation_id_mapper_earthstayin"
+
+
+# Mappers (service -> corresponding Property or Reservation IdMapper)
 property_id_mapper_by_service = {
     Service.ZOOKING: PropertyIdMapperZooking,
     Service.CLICKANDGO: PropertyIdMapperClickAndGo,
@@ -77,18 +71,14 @@ reservation_id_mapper_by_service = {
 }
 
 
+# Triggers
 @event.listens_for(SequenceIdProperties.__table__, 'after_create')
-def insert_initial_id(target, connection, **kw):
-    connection.execute(target.insert().values(auto_incremented=1))
-
-
 @event.listens_for(SequenceIdReservations.__table__, 'after_create')
 def insert_initial_id(target, connection, **kw):
     connection.execute(target.insert().values(auto_incremented=1))
 
 
-@event.listens_for(PropertyIdMapperZooking, 'before_insert')
-def increment_before_insert(mapper, connection, target):
+def increment_property_sequence_id_before_insert(mapper, connection, target):
     session = SessionLocal()
     try:
         with session.begin():
@@ -100,34 +90,11 @@ def increment_before_insert(mapper, connection, target):
         session.rollback()
 
 
-@event.listens_for(PropertyIdMapperClickAndGo, 'before_insert')
-def increment_before_insert(mapper, connection, target):
-    session = SessionLocal()
-    try:
-        with session.begin():
-            global_counter = session.execute(text("SELECT auto_incremented FROM sequence_id_properties")).scalar()
-            target.internal_id = global_counter
-            session.execute(text("UPDATE sequence_id_properties SET auto_incremented = auto_incremented + 1"))
-    except SQLAlchemyError as e:
-        print(e)
-        session.rollback()
+for PropertyIdMapper in property_id_mapper_by_service.values():
+    listen(PropertyIdMapper, "before_insert", increment_property_sequence_id_before_insert)
 
 
-@event.listens_for(PropertyIdMapperEarthStayin, 'before_insert')
-def increment_before_insert(mapper, connection, target):
-    session = SessionLocal()
-    try:
-        with session.begin():
-            global_counter = session.execute(text("SELECT auto_incremented FROM sequence_id_properties")).scalar()
-            target.internal_id = global_counter
-            session.execute(text("UPDATE sequence_id_properties SET auto_incremented = auto_incremented + 1"))
-    except SQLAlchemyError as e:
-        print(e)
-        session.rollback()
-
-
-@event.listens_for(ReservationIdMapperZooking, 'before_insert')
-def increment_before_insert(mapper, connection, target):
+def increment_reservation_sequence_id_before_insert(mapper, connection, target):
     session = SessionLocal()
     try:
         with session.begin():
@@ -139,32 +106,11 @@ def increment_before_insert(mapper, connection, target):
         session.rollback()
 
 
-@event.listens_for(ReservationIdMapperClickAndGo, 'before_insert')
-def increment_before_insert(mapper, connection, target):
-    session = SessionLocal()
-    try:
-        with session.begin():
-            global_counter = session.execute(text("SELECT auto_incremented FROM sequence_id_reservations")).scalar()
-            target.internal_id = global_counter
-            session.execute(text("UPDATE sequence_id_reservations SET auto_incremented = auto_incremented + 1"))
-    except SQLAlchemyError as e:
-        print(e)
-        session.rollback()
+for ReservationIdMapper in reservation_id_mapper_by_service.values():
+    listen(ReservationIdMapper, "before_insert", increment_reservation_sequence_id_before_insert)
 
 
-@event.listens_for(ReservationIdMapperEarthStayin, 'before_insert')
-def increment_before_insert(mapper, connection, target):
-    session = SessionLocal()
-    try:
-        with session.begin():
-            global_counter = session.execute(text("SELECT auto_incremented FROM sequence_id_reservations")).scalar()
-            target.internal_id = global_counter
-            session.execute(text("UPDATE sequence_id_reservations SET auto_incremented = auto_incremented + 1"))
-    except SQLAlchemyError as e:
-        print(e)
-        session.rollback()
-
-
+# Helper functions
 def get_property_external_id(service: Service, internal_property_id: int) -> int:
     with SessionLocal() as db:
         PropertyIdMapper = property_id_mapper_by_service[service]
@@ -174,14 +120,14 @@ def get_property_external_id(service: Service, internal_property_id: int) -> int
 def set_or_get_property_internal_id(service: Service, external_property_id: int) -> int:
     with SessionLocal() as db:
         PropertyIdMapper = property_id_mapper_by_service[service]
-        property_record = db.query(PropertyIdMapper).filter(PropertyIdMapper.external_id == external_property_id).first()
-        print("property_record", property_record)
+        property_record = db.query(PropertyIdMapper).filter(
+            PropertyIdMapper.external_id == external_property_id).first()
         if property_record is not None:
             return property_record.internal_id
         return set_and_get_property_internal_id(service, external_property_id)
 
 
-def set_and_get_property_internal_id(service: Service, external_property_id):
+def set_and_get_property_internal_id(service: Service, external_property_id) -> int:
     with SessionLocal() as db:
         PropertyIdMapper = property_id_mapper_by_service[service]
         mapped_id = PropertyIdMapper(external_id=external_property_id)

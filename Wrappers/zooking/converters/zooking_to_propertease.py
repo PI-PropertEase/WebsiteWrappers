@@ -103,17 +103,16 @@ class ZookingToPropertease:
     @staticmethod
     def convert_reservation(zooking_reservation):
         print("\nzooking_reservation", zooking_reservation)
-        propertease_reservation = {}
-        propertease_reservation["_id"] = set_and_get_reservation_internal_id(Service.ZOOKING,
-                                                                             zooking_reservation.get("id"))
-        propertease_reservation["property_id"] = set_or_get_property_internal_id(Service.ZOOKING,
-                                                                                 zooking_reservation.get("property_id"))
-        propertease_reservation["status"] = zooking_reservation.get("status")
-        propertease_reservation["begin_datetime"] = zooking_reservation.get("arrival")
-        propertease_reservation["end_datetime"] = zooking_reservation.get("departure")
-        propertease_reservation["client_email"] = zooking_reservation.get("client_email")
-        propertease_reservation["client_name"] = zooking_reservation.get("client_name")
-        propertease_reservation["client_phone"] = zooking_reservation.get("client_phone")
-        propertease_reservation["cost"] = zooking_reservation.get("cost")
+        propertease_reservation = {
+            "_id": set_and_get_reservation_internal_id(Service.ZOOKING, zooking_reservation.get("id")),
+            "property_id": set_or_get_property_internal_id(Service.ZOOKING, zooking_reservation.get("property_id")),
+            "status": zooking_reservation.get("status"),
+            "begin_datetime": zooking_reservation.get("arrival"),
+            "end_datetime": zooking_reservation.get("departure"),
+            "client_email": zooking_reservation.get("client_email"),
+            "client_name": zooking_reservation.get("client_name"),
+            "client_phone": zooking_reservation.get("client_phone"),
+            "cost": zooking_reservation.get("cost")
+        }
         print("\npropertease_reservation", propertease_reservation)
         return propertease_reservation
