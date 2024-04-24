@@ -1,4 +1,5 @@
-from ProjectUtils.MessagingService.queue_definitions import channel, EXCHANGE_NAME, WRAPPER_TO_APP_ROUTING_KEY
+from ProjectUtils.MessagingService.queue_definitions import channel, EXCHANGE_NAME, WRAPPER_TO_APP_ROUTING_KEY, \
+    WRAPPER_TO_CALENDAR_ROUTING_KEY
 from ProjectUtils.MessagingService.schemas import (
     MessageFactory,
     MessageType,
@@ -24,9 +25,15 @@ def handle_recv(channel, method, properties, body):
         case MessageType.PROPERTY_DELETE:
             wrapper.delete_property(message.body)
         case MessageType.PROPERTY_IMPORT:
-            properties = wrapper.import_properties(message.body)
-            body = MessageFactory.create_import_properties_response_message(Service.EARTHSTAYIN, properties)
-            channel.basic_publish(exchange=EXCHANGE_NAME, routing_key=WRAPPER_TO_APP_ROUTING_KEY, body=to_json(body))
+            body = message.body
+            properties = wrapper.import_properties(body)
+            channel.basic_publish(exchange=EXCHANGE_NAME, routing_key=WRAPPER_TO_APP_ROUTING_KEY, body=to_json(
+                MessageFactory.create_import_properties_response_message(Service.EARTHSTAYIN, properties)
+            ))
+            reservations = wrapper.import_reservations(body)
+            channel.basic_publish(exchange=EXCHANGE_NAME, routing_key=WRAPPER_TO_CALENDAR_ROUTING_KEY, body=to_json(
+                MessageFactory.create_import_reservations_response_message(Service.EARTHSTAYIN, reservations)
+            ))
         case MessageType.PROPERTY_IMPORT_DUPLICATE:
             body = message.body
             print("body from DUPLICATE PROPERTY:", body)

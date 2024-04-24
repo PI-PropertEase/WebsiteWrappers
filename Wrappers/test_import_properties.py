@@ -1,4 +1,5 @@
-from ProjectUtils.MessagingService.queue_definitions import channel, EXCHANGE_NAME, WRAPPER_ZOOKING_ROUTING_KEY
+from ProjectUtils.MessagingService.queue_definitions import channel, EXCHANGE_NAME, WRAPPER_ZOOKING_ROUTING_KEY, \
+    WRAPPER_EARTHSTAYIN_ROUTING_KEY, WRAPPER_CLICKANDGO_ROUTING_KEY
 from ProjectUtils.MessagingService.schemas import (
     MessageFactory,
     MessageType,
@@ -26,7 +27,7 @@ def run():
 
             channel.basic_publish(
                 exchange=EXCHANGE_NAME,
-                routing_key=WRAPPER_ZOOKING_ROUTING_KEY, 
+                routing_key=WRAPPER_ZOOKING_ROUTING_KEY,
                 body=to_json(body),
                 properties=pika.BasicProperties(delivery_mode=pika.spec.PERSISTENT_DELIVERY_MODE)
             )

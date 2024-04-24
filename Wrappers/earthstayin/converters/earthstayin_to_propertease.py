@@ -1,7 +1,8 @@
 from ProjectUtils.MessagingService.schemas import Service
 from Wrappers.base_wrapper.utils import invert_map
 from Wrappers.earthstayin.converters.propertease_to_earthstayin import ProperteaseToEarthstayin
-from Wrappers.models import set_and_get_property_internal_id
+from Wrappers.models import set_and_get_property_internal_id, set_and_get_reservation_internal_id, \
+    set_or_get_property_internal_id
 
 
 class EarthstayinToPropertease:
@@ -99,3 +100,21 @@ class EarthstayinToPropertease:
             },
             "allow_pets": earthstayin_houserules.get("pets_allowed"),
         }
+
+    @staticmethod
+    def convert_reservation(earthstayin_reservation, owner_email: str):
+        print("\nearthstayin_reservation", earthstayin_reservation)
+        propertease_reservation = {
+            "_id": set_and_get_reservation_internal_id(Service.ZOOKING, earthstayin_reservation.get("id")),
+            "property_id": set_or_get_property_internal_id(Service.ZOOKING, earthstayin_reservation.get("property_id")),
+            "owner_email": owner_email,
+            "status": earthstayin_reservation.get("status"),
+            "begin_datetime": earthstayin_reservation.get("arrival"),
+            "end_datetime": earthstayin_reservation.get("departure"),
+            "client_email": earthstayin_reservation.get("client_email"),
+            "client_name": earthstayin_reservation.get("client_name"),
+            "client_phone": earthstayin_reservation.get("client_phone"),
+            "cost": earthstayin_reservation.get("cost")
+        }
+        print("\npropertease_reservation", propertease_reservation)
+        return propertease_reservation
