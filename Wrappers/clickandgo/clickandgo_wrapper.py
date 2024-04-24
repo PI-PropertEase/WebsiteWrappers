@@ -8,7 +8,7 @@ from ProjectUtils.MessagingService.queue_definitions import (
     EXCHANGE_NAME,
     WRAPPER_CLICKANDGO_ROUTING_KEY, WRAPPER_BROADCAST_ROUTING_KEY,
 )
-from ..models import set_and_get_property_internal_id, Service, get_property_external_id
+from ..models import set_and_get_property_internal_id, Service, get_property_external_id, get_reservation_external_id
 
 
 class CNGAPIWrapper(BaseAPIWrapper):
@@ -65,4 +65,10 @@ class CNGAPIWrapper(BaseAPIWrapper):
             ClickandgoToPropertease.convert_reservation(r, email) for r in zooking_reservations
         ]
         return converted_properties
+
+    def delete_reservation(self, reservation_internal_id):
+        _id = get_reservation_external_id(Service.CLICKANDGO, reservation_internal_id)
+        url = self.url + f"reservations/{_id}"
+        print("Deleting reservation...", reservation_internal_id)
+        requests.delete(url=url)
 

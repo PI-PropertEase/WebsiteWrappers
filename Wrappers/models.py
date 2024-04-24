@@ -156,16 +156,16 @@ def set_property_mapped_id(service: Service, old_internal_id, new_internal_id):
         db.commit()
 
 
-def get_reservation_external_id(service: Service, internal_property_id: int) -> int:
+def get_reservation_external_id(service: Service, internal_reservation_id: int) -> int:
     with SessionLocal() as db:
         ReservationIdMapper = reservation_id_mapper_by_service[service]
-        return db.query(ReservationIdMapper).get(internal_property_id).external_id
+        return db.query(ReservationIdMapper).get(internal_reservation_id).external_id
 
 
-def get_reservation_internal_id(service: Service, internal_property_id: int) -> int:
+def get_reservation_internal_id(service: Service, internal_reservation_id: int) -> int:
     with SessionLocal() as db:
         ReservationIdMapper = reservation_id_mapper_by_service[service]
-        return db.query(ReservationIdMapper).get(internal_property_id).internal_id
+        return db.query(ReservationIdMapper).get(internal_reservation_id).internal_id
 
 
 def set_and_get_reservation_internal_id(service: Service, external_reservation_id):

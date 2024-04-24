@@ -8,7 +8,7 @@ from ProjectUtils.MessagingService.queue_definitions import (
     EXCHANGE_NAME,
     WRAPPER_ZOOKING_ROUTING_KEY, WRAPPER_BROADCAST_ROUTING_KEY,
 )
-from ..models import Service, get_property_external_id
+from ..models import Service, get_property_external_id, get_reservation_external_id
 
 
 class ZookingAPIWrapper(BaseAPIWrapper):
@@ -65,5 +65,11 @@ class ZookingAPIWrapper(BaseAPIWrapper):
             ZookingToPropertease.convert_reservation(r, email) for r in zooking_reservations
         ]
         return converted_properties
+
+    def delete_reservation(self, reservation_internal_id):
+        _id = get_reservation_external_id(Service.ZOOKING, reservation_internal_id)
+        url = self.url + f"reservations/{_id}"
+        print("Deleting reservation...", reservation_internal_id)
+        requests.delete(url=url)
 
 

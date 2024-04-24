@@ -38,6 +38,10 @@ def handle_recv(channel, method, properties, body):
             body = message.body
             print("body from DUPLICATE PROPERTY:", body)
             set_property_mapped_id(Service.EARTHSTAYIN, body["old_internal_id"], body["new_internal_id"])
+        case MessageType.RESERVATION_IMPORT_OVERLAP:
+            body = message.body
+            print("RESERVATION_IMPORT_OVERLAP: ", body)
+            wrapper.delete_reservation(body["old_internal_id"])
 
     channel.basic_ack(delivery_tag)
 

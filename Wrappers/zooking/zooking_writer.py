@@ -37,6 +37,11 @@ def handle_recv(channel, method, properties, body):
         case MessageType.PROPERTY_IMPORT_DUPLICATE:
             body = message.body
             set_property_mapped_id(Service.ZOOKING, body["old_internal_id"], body["new_internal_id"])
+        case MessageType.RESERVATION_IMPORT_OVERLAP:
+            body = message.body
+            print("RESERVATION_IMPORT_OVERLAP: ", body)
+            wrapper.delete_reservation(body["old_internal_id"])
+
 
     channel.basic_ack(delivery_tag)
 
