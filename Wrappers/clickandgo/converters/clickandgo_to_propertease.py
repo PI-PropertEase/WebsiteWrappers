@@ -1,7 +1,8 @@
 from ProjectUtils.MessagingService.schemas import Service
 from Wrappers.base_wrapper.utils import invert_map
 from Wrappers.clickandgo.converters.propertease_to_clickandgo import ProperteaseToClickandgo
-from Wrappers.models import set_and_get_property_internal_id
+from Wrappers.models import set_and_get_property_internal_id, set_and_get_reservation_internal_id, \
+    set_or_get_property_internal_id
 
 
 class ClickandgoToPropertease:
@@ -109,4 +110,22 @@ class ClickandgoToPropertease:
                 "phone_number": clickandgo_housemanager.get("phone_number"),
             }
         ]
+
+    @staticmethod
+    def convert_reservation(clickandgo_reservation, owner_email: str):
+        print("\nclickandgo_reservation", clickandgo_reservation)
+        propertease_reservation = {
+            "_id": set_and_get_reservation_internal_id(Service.CLICKANDGO, clickandgo_reservation.get("id")),
+            "property_id": set_or_get_property_internal_id(Service.CLICKANDGO, clickandgo_reservation.get("property_id")),
+            "owner_email": owner_email,
+            "status": clickandgo_reservation.get("status"),
+            "begin_datetime": clickandgo_reservation.get("arrival"),
+            "end_datetime": clickandgo_reservation.get("departure"),
+            "client_email": clickandgo_reservation.get("client_email"),
+            "client_name": clickandgo_reservation.get("client_name"),
+            "client_phone": clickandgo_reservation.get("client_phone"),
+            "cost": clickandgo_reservation.get("cost")
+        }
+        print("\npropertease_reservation", propertease_reservation)
+        return propertease_reservation
 
