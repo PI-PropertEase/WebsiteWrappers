@@ -124,7 +124,8 @@ class ClickandgoToPropertease:
             "client_email": clickandgo_reservation.get("client_email"),
             "client_name": clickandgo_reservation.get("client_name"),
             "client_phone": clickandgo_reservation.get("client_phone"),
-            "cost": clickandgo_reservation.get("cost")
+            "cost": clickandgo_reservation.get("cost"),
+            "confirmed": clickandgo_reservation.get("confirmed"),
         }
         print("\npropertease_reservation", propertease_reservation)
         return propertease_reservation

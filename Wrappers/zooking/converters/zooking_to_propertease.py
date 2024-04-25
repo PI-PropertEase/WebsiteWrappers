@@ -113,7 +113,8 @@ class ZookingToPropertease:
             "client_email": zooking_reservation.get("client_email"),
             "client_name": zooking_reservation.get("client_name"),
             "client_phone": zooking_reservation.get("client_phone"),
-            "cost": zooking_reservation.get("cost")
+            "cost": zooking_reservation.get("cost"),
+            "confirmed": zooking_reservation.get("confirmed"),
         }
         print("\npropertease_reservation", propertease_reservation)
         return propertease_reservation

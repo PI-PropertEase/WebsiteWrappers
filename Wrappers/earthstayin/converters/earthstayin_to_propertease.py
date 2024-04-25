@@ -114,7 +114,8 @@ class EarthstayinToPropertease:
             "client_email": earthstayin_reservation.get("client_email"),
             "client_name": earthstayin_reservation.get("client_name"),
             "client_phone": earthstayin_reservation.get("client_phone"),
-            "cost": earthstayin_reservation.get("cost")
+            "cost": earthstayin_reservation.get("cost"),
+            "confirmed": earthstayin_reservation.get("confirmed"),
         }
         print("\npropertease_reservation", propertease_reservation)
         return propertease_reservation

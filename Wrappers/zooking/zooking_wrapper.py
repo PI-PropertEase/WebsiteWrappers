@@ -66,6 +66,16 @@ class ZookingAPIWrapper(BaseAPIWrapper):
         ]
         return converted_properties
 
+    def import_new_pending_reservations(self, user):
+        email = user.get("email")
+        url = f"{self.url}reservations?email={email}&confirmed={False}"
+        print("Importing new pending reservations...")
+        zooking_reservations = requests.get(url=url).json()
+        converted_properties = [
+            ZookingToPropertease.convert_reservation(r, email) for r in zooking_reservations
+        ]
+        return converted_properties
+
     def delete_reservation(self, reservation_internal_id):
         _id = get_reservation_external_id(Service.ZOOKING, reservation_internal_id)
         url = self.url + f"reservations/{_id}"
