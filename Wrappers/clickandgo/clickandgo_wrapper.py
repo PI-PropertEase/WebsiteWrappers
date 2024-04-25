@@ -8,7 +8,7 @@ from ProjectUtils.MessagingService.queue_definitions import (
     EXCHANGE_NAME,
     WRAPPER_CLICKANDGO_ROUTING_KEY, WRAPPER_BROADCAST_ROUTING_KEY,
 )
-from ..models import set_and_get_property_internal_id, Service, get_property_external_id, get_reservation_external_id
+from ..models import set_property_internal_id, Service, get_property_external_id, get_reservation_external_id
 
 
 class CNGAPIWrapper(BaseAPIWrapper):

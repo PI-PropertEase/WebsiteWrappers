@@ -1,7 +1,8 @@
 from ProjectUtils.MessagingService.schemas import Service
 from Wrappers.base_wrapper.utils import invert_map
-from Wrappers.models import set_and_get_property_internal_id, set_and_get_reservation_internal_id, \
-    set_or_get_property_internal_id
+from Wrappers.models import set_property_internal_id, set_and_get_reservation_internal_id, \
+    set_or_get_property_internal_id, set_reservation_internal_id, \
+    get_reservation_internal_id
 from Wrappers.zooking.converters.propertease_to_zooking import ProperteaseToZooking
 
 
@@ -13,7 +14,7 @@ class ZookingToPropertease:
     @staticmethod
     def convert_property(zooking_property):
         propertease_property = dict()
-        propertease_property["_id"] = set_and_get_property_internal_id(Service.ZOOKING, zooking_property.get("id"))
+        propertease_property["_id"] = set_property_internal_id(Service.ZOOKING, zooking_property.get("id"))
         propertease_property["user_email"] = zooking_property.get("user_email")
         propertease_property["title"] = zooking_property.get("name")
         propertease_property["address"] = zooking_property.get("address")
@@ -104,7 +105,7 @@ class ZookingToPropertease:
     def convert_reservation(zooking_reservation, owner_email: str):
         print("\nzooking_reservation", zooking_reservation)
         propertease_reservation = {
-            "_id": set_and_get_reservation_internal_id(Service.ZOOKING, zooking_reservation.get("id")),
+            "_id": set_reservation_internal_id(Service.ZOOKING, zooking_reservation.get("id")),
             "property_id": set_or_get_property_internal_id(Service.ZOOKING, zooking_reservation.get("property_id")),
             "owner_email": owner_email,
             "status": zooking_reservation.get("status"),
@@ -114,7 +115,7 @@ class ZookingToPropertease:
             "client_name": zooking_reservation.get("client_name"),
             "client_phone": zooking_reservation.get("client_phone"),
             "cost": zooking_reservation.get("cost"),
-            "confirmed": zooking_reservation.get("confirmed"),
+            "reservation_status": zooking_reservation.get("reservation_status"),
         }
         print("\npropertease_reservation", propertease_reservation)
         return propertease_reservation

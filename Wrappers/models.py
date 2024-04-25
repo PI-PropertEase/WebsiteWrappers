@@ -114,7 +114,8 @@ for ReservationIdMapper in reservation_id_mapper_by_service.values():
 def get_property_external_id(service: Service, internal_property_id: int) -> int:
     with SessionLocal() as db:
         PropertyIdMapper = property_id_mapper_by_service[service]
-        return db.query(PropertyIdMapper).get(internal_property_id).external_id
+        property = db.query(PropertyIdMapper).get(internal_property_id)
+        return property.external_id if property is not None else property
 
 
 def set_or_get_property_internal_id(service: Service, external_property_id: int) -> int:
@@ -124,10 +125,14 @@ def set_or_get_property_internal_id(service: Service, external_property_id: int)
             PropertyIdMapper.external_id == external_property_id).first()
         if property_record is not None:
             return property_record.internal_id
-        return set_and_get_property_internal_id(service, external_property_id)
+        mapped_id = PropertyIdMapper(external_id=external_property_id)
+        db.add(mapped_id)
+        db.commit()
+        db.refresh(mapped_id)
+        return mapped_id.internal_id
 
 
-def set_and_get_property_internal_id(service: Service, external_property_id) -> int:
+def set_property_internal_id(service: Service, external_property_id) -> int:
     with SessionLocal() as db:
         PropertyIdMapper = property_id_mapper_by_service[service]
         mapped_id = PropertyIdMapper(external_id=external_property_id)
@@ -159,16 +164,28 @@ def set_property_mapped_id(service: Service, old_internal_id, new_internal_id):
 def get_reservation_external_id(service: Service, internal_reservation_id: int) -> int:
     with SessionLocal() as db:
         ReservationIdMapper = reservation_id_mapper_by_service[service]
-        return db.query(ReservationIdMapper).get(internal_reservation_id).external_id
+        reservation = db.query(ReservationIdMapper).get(internal_reservation_id)
+        return reservation.external_id if reservation is not None else reservation
 
 
 def get_reservation_internal_id(service: Service, internal_reservation_id: int) -> int:
     with SessionLocal() as db:
         ReservationIdMapper = reservation_id_mapper_by_service[service]
-        return db.query(ReservationIdMapper).get(internal_reservation_id).internal_id
+        reservation = db.query(ReservationIdMapper).get(internal_reservation_id)
+        return reservation.internal_id if reservation is not None else reservation
 
 
 def set_and_get_reservation_internal_id(service: Service, external_reservation_id):
+    with SessionLocal() as db:
+        ReservationIdMapper = reservation_id_mapper_by_service[service]
+        mapped_id = ReservationIdMapper(external_id=external_reservation_id)
+        db.add(mapped_id)
+        db.commit()
+        db.refresh(mapped_id)
+        return mapped_id.internal_id
+
+
+def set_reservation_internal_id(service: Service, external_reservation_id):
     with SessionLocal() as db:
         ReservationIdMapper = reservation_id_mapper_by_service[service]
         mapped_id = ReservationIdMapper(external_id=external_reservation_id)

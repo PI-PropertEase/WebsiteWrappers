@@ -43,7 +43,10 @@ def handle_recv(channel, method, properties, body):
             for user_email, user_service in body["users_with_services"].items():
                 print(user_email, user_service)
                 if "zooking" in user_service:
-                    wrapper.import_new_pending_reservations({"email": user_email})
+                    reservations = wrapper.import_new_pending_or_canceled_reservations({"email": user_email})
+                    channel.basic_publish(exchange=EXCHANGE_NAME, routing_key=WRAPPER_TO_CALENDAR_ROUTING_KEY, body=to_json(
+                        MessageFactory.create_import_reservations_response_message(Service.ZOOKING, reservations)
+                    ))
 
 
     channel.basic_ack(delivery_tag)

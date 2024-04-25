@@ -1,7 +1,7 @@
 from ProjectUtils.MessagingService.schemas import Service
 from Wrappers.base_wrapper.utils import invert_map
 from Wrappers.earthstayin.converters.propertease_to_earthstayin import ProperteaseToEarthstayin
-from Wrappers.models import set_and_get_property_internal_id, set_and_get_reservation_internal_id, \
+from Wrappers.models import set_property_internal_id, set_and_get_reservation_internal_id, \
     set_or_get_property_internal_id
 
 
@@ -13,8 +13,8 @@ class EarthstayinToPropertease:
     @staticmethod
     def convert_property(earthstayin_property):
         propertease_property = {}
-        propertease_property["_id"] = set_and_get_property_internal_id(Service.EARTHSTAYIN,
-                                                                       earthstayin_property.get("id"))
+        propertease_property["_id"] = set_property_internal_id(Service.EARTHSTAYIN,
+                                                               earthstayin_property.get("id"))
         propertease_property["user_email"] = earthstayin_property.get("user_email")
         propertease_property["title"] = earthstayin_property.get("name")
         propertease_property["address"] = earthstayin_property.get("address")
@@ -115,7 +115,7 @@ class EarthstayinToPropertease:
             "client_name": earthstayin_reservation.get("client_name"),
             "client_phone": earthstayin_reservation.get("client_phone"),
             "cost": earthstayin_reservation.get("cost"),
-            "confirmed": earthstayin_reservation.get("confirmed"),
+            "reservation_status": earthstayin_reservation.get("reservation_status"),
         }
         print("\npropertease_reservation", propertease_reservation)
         return propertease_reservation

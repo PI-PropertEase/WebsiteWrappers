@@ -8,7 +8,7 @@ from ProjectUtils.MessagingService.queue_definitions import (
     EXCHANGE_NAME,
     WRAPPER_ZOOKING_ROUTING_KEY, WRAPPER_BROADCAST_ROUTING_KEY,
 )
-from ..models import Service, get_property_external_id, get_reservation_external_id
+from ..models import Service, get_property_external_id, get_reservation_external_id, get_reservation_internal_id
 
 
 class ZookingAPIWrapper(BaseAPIWrapper):
@@ -61,20 +61,22 @@ class ZookingAPIWrapper(BaseAPIWrapper):
         url = self.url + "reservations?email=" + email
         print("Importing reservations...")
         zooking_reservations = requests.get(url=url).json()
-        converted_properties = [
+        converted_reservations = [
             ZookingToPropertease.convert_reservation(r, email) for r in zooking_reservations
         ]
-        return converted_properties
+        return converted_reservations
 
-    def import_new_pending_reservations(self, user):
+    def import_new_pending_or_canceled_reservations(self, user):
         email = user.get("email")
         url = f"{self.url}reservations?email={email}&confirmed={False}"
         print("Importing new pending reservations...")
         zooking_reservations = requests.get(url=url).json()
-        converted_properties = [
-            ZookingToPropertease.convert_reservation(r, email) for r in zooking_reservations
+        converted_reservations = [
+            ZookingToPropertease.convert_reservation(r, email)
+            for r in zooking_reservations
+            if get_reservation_internal_id(Service.ZOOKING, r) is None or r["reservation_status"] == "canceled"
         ]
-        return converted_properties
+        return converted_reservations
 
     def delete_reservation(self, reservation_internal_id):
         _id = get_reservation_external_id(Service.ZOOKING, reservation_internal_id)
