@@ -168,10 +168,11 @@ def get_reservation_external_id(service: Service, internal_reservation_id: int) 
         return reservation.external_id if reservation is not None else reservation
 
 
-def get_reservation_internal_id(service: Service, internal_reservation_id: int) -> int:
+def get_reservation_internal_id(service: Service, external_reservation_id: int) -> int:
     with SessionLocal() as db:
         ReservationIdMapper = reservation_id_mapper_by_service[service]
-        reservation = db.query(ReservationIdMapper).get(internal_reservation_id)
+        print("external_reservation_id", external_reservation_id)
+        reservation = db.query(ReservationIdMapper).filter(ReservationIdMapper.external_id == external_reservation_id).first()
         return reservation.internal_id if reservation is not None else reservation
 
 

@@ -108,7 +108,6 @@ class EarthstayinToPropertease:
             "_id": set_and_get_reservation_internal_id(Service.EARTHSTAYIN, earthstayin_reservation.get("id")),
             "property_id": set_or_get_property_internal_id(Service.EARTHSTAYIN, earthstayin_reservation.get("property_id")),
             "owner_email": owner_email,
-            "status": earthstayin_reservation.get("status"),
             "begin_datetime": earthstayin_reservation.get("arrival"),
             "end_datetime": earthstayin_reservation.get("departure"),
             "client_email": earthstayin_reservation.get("client_email"),

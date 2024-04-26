@@ -118,7 +118,6 @@ class ClickandgoToPropertease:
             "_id": set_and_get_reservation_internal_id(Service.CLICKANDGO, clickandgo_reservation.get("id")),
             "property_id": set_or_get_property_internal_id(Service.CLICKANDGO, clickandgo_reservation.get("property_id")),
             "owner_email": owner_email,
-            "status": clickandgo_reservation.get("status"),
             "begin_datetime": clickandgo_reservation.get("arrival"),
             "end_datetime": clickandgo_reservation.get("departure"),
             "client_email": clickandgo_reservation.get("client_email"),

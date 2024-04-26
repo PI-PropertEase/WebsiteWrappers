@@ -108,7 +108,6 @@ class ZookingToPropertease:
             "_id": set_reservation_internal_id(Service.ZOOKING, zooking_reservation.get("id")),
             "property_id": set_or_get_property_internal_id(Service.ZOOKING, zooking_reservation.get("property_id")),
             "owner_email": owner_email,
-            "status": zooking_reservation.get("status"),
             "begin_datetime": zooking_reservation.get("arrival"),
             "end_datetime": zooking_reservation.get("departure"),
             "client_email": zooking_reservation.get("client_email"),
