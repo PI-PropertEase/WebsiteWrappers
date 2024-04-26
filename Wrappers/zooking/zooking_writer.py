@@ -47,6 +47,9 @@ def handle_recv(channel, method, properties, body):
                     channel.basic_publish(exchange=EXCHANGE_NAME, routing_key=WRAPPER_TO_CALENDAR_ROUTING_KEY, body=to_json(
                         MessageFactory.create_import_reservations_response_message(Service.ZOOKING, reservations)
                     ))
+        case MessageType.RESERVATION_IMPORT_CONFIRM:
+            print("RESERVATION_IMPORT_CONFIRM: ", body)
+            wrapper.confirm_reservation(body["internal_id"])
 
 
     channel.basic_ack(delivery_tag)

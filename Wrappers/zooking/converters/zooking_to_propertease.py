@@ -102,10 +102,10 @@ class ZookingToPropertease:
         }
 
     @staticmethod
-    def convert_reservation(zooking_reservation, owner_email: str):
+    def convert_reservation(zooking_reservation, owner_email: str, internal_id=None):
         print("\nzooking_reservation", zooking_reservation)
         propertease_reservation = {
-            "_id": set_reservation_internal_id(Service.ZOOKING, zooking_reservation.get("id")),
+            "_id": internal_id if internal_id is not None else set_reservation_internal_id(Service.ZOOKING, zooking_reservation.get("id")),
             "property_id": set_or_get_property_internal_id(Service.ZOOKING, zooking_reservation.get("property_id")),
             "owner_email": owner_email,
             "begin_datetime": zooking_reservation.get("arrival"),

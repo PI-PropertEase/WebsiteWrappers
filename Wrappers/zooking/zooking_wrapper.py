@@ -72,11 +72,17 @@ class ZookingAPIWrapper(BaseAPIWrapper):
         print("Importing new pending reservations...")
         zooking_reservations = requests.get(url=url).json()
         converted_reservations = [
-            ZookingToPropertease.convert_reservation(r, email)
+            ZookingToPropertease.convert_reservation(r, email, internal_id)
             for r in zooking_reservations
-            if get_reservation_internal_id(Service.ZOOKING, r["id"]) is None or r["reservation_status"] == "canceled"
+            if (internal_id := get_reservation_internal_id(Service.ZOOKING, r["id"])) is None or r["reservation_status"] == "canceled"
         ]
         return converted_reservations
+
+    def confirm_reservation(self, reservation_internal_id):
+        _id = get_reservation_external_id(Service.ZOOKING, reservation_internal_id)
+        url = self.url + f"reservations/{_id}"
+        print("Confirming reservation...", reservation_internal_id)
+        requests.put(url=url, json={"reservation_status": "confirmed"})
 
     def delete_reservation(self, reservation_internal_id):
         _id = get_reservation_external_id(Service.ZOOKING, reservation_internal_id)
