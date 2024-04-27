@@ -2,7 +2,7 @@ import requests
 
 from .converters.earthstayin_to_propertease import EarthstayinToPropertease
 from .converters.propertease_to_earthstayin import ProperteaseToEarthstayin
-from ..base_wrapper.api_wrapper import BaseAPIWrapper
+from ..base_wrapper.api_wrapper import BaseWrapper
 from ProjectUtils.MessagingService.queue_definitions import (
     channel,
     EXCHANGE_NAME,
@@ -11,11 +11,13 @@ from ProjectUtils.MessagingService.queue_definitions import (
 from ..models import set_property_internal_id, Service, get_property_external_id, get_reservation_external_id
 
 
-class EarthStayinAPIWrapper(BaseAPIWrapper):
+class EarthStayinWrapper(BaseWrapper):
     def __init__(self) -> None:
-        super().__init__()
-        self.url = "http://localhost:8001/"
-        self.queue = "earthstayin_queue"
+        super().__init__(
+            url="http://localhost:8001/",
+            queue="earthstayin_queue",
+            service_schema=Service.EARTHSTAYIN,
+        )
         earthstayin_queue = channel.queue_declare(queue=self.queue, durable=True)
         channel.queue_bind(
             queue=earthstayin_queue.method.queue,

@@ -2,7 +2,7 @@ import requests
 
 from Wrappers.zooking.converters.propertease_to_zooking import ProperteaseToZooking
 from Wrappers.zooking.converters.zooking_to_propertease import ZookingToPropertease
-from ..base_wrapper.api_wrapper import BaseAPIWrapper
+from ..base_wrapper.api_wrapper import BaseWrapper
 from ProjectUtils.MessagingService.queue_definitions import (
     channel,
     EXCHANGE_NAME,
@@ -10,13 +10,16 @@ from ProjectUtils.MessagingService.queue_definitions import (
 )
 from ..models import Service, get_property_external_id, get_reservation_external_id, \
     get_reservation_by_external_id, ReservationStatus
+from ProjectUtils.MessagingService.schemas import Service as ServiceSchema
 
 
-class ZookingAPIWrapper(BaseAPIWrapper):
+class ZookingWrapper(BaseWrapper):
     def __init__(self) -> None:
-        super().__init__()
-        self.url = "http://localhost:8000/"
-        self.queue = "zooking_queue"
+        super().__init__(
+            url="http://localhost:8000/",
+            queue="zooking_queue",
+            service_schema=ServiceSchema.ZOOKING,
+        )
         zooking_queue = channel.queue_declare(queue=self.queue, durable=True)
         channel.queue_bind(
             queue=zooking_queue.method.queue,
@@ -67,7 +70,7 @@ class ZookingAPIWrapper(BaseAPIWrapper):
         ]
         return converted_reservations
 
-    def import_new_pending_or_canceled_reservations(self, user):
+    def import_new_or_newly_canceled_reservations(self, user):
         email = user.get("email")
         url = f"{self.url}reservations/upcoming?email={email}"
         print("Importing new reservations...")
@@ -91,5 +94,3 @@ class ZookingAPIWrapper(BaseAPIWrapper):
         url = self.url + f"reservations/{_id}"
         print("Deleting reservation...", reservation_internal_id)
         requests.delete(url=url)
-
-
