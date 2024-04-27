@@ -8,7 +8,8 @@ from ProjectUtils.MessagingService.queue_definitions import (
     EXCHANGE_NAME,
     WRAPPER_ZOOKING_ROUTING_KEY, WRAPPER_BROADCAST_ROUTING_KEY,
 )
-from ..models import Service, get_property_external_id, get_reservation_external_id, get_reservation_internal_id
+from ..models import Service, get_property_external_id, get_reservation_external_id, get_reservation_internal_id, \
+    get_reservation_by_external_id, ReservationStatus
 
 
 class ZookingAPIWrapper(BaseAPIWrapper):
@@ -69,12 +70,13 @@ class ZookingAPIWrapper(BaseAPIWrapper):
     def import_new_pending_or_canceled_reservations(self, user):
         email = user.get("email")
         url = f"{self.url}reservations/upcoming?email={email}"
-        print("Importing new pending reservations...")
+        print("Importing new reservations...")
         zooking_reservations = requests.get(url=url).json()
         converted_reservations = [
-            ZookingToPropertease.convert_reservation(r, email, internal_id)
+            ZookingToPropertease.convert_reservation(r, email, reservation)
             for r in zooking_reservations
-            if (internal_id := get_reservation_internal_id(Service.ZOOKING, r["id"])) is None or r["reservation_status"] == "canceled"
+            if (reservation := get_reservation_by_external_id(Service.ZOOKING, r["id"])) is None or
+               (r["reservation_status"] == "canceled" and reservation.reservation_status != ReservationStatus.CANCELED)
         ]
         return converted_reservations
 

@@ -1,9 +1,10 @@
-from sqlalchemy import Column, Integer, event, text
+from sqlalchemy import Column, Integer, event, text, Enum
 from sqlalchemy import create_engine
 from sqlalchemy.event import listen
 from sqlalchemy.exc import SQLAlchemyError
 from sqlalchemy.ext.declarative import declarative_base
 from sqlalchemy.orm import sessionmaker
+from enum import Enum as EnumType
 
 from ProjectUtils.MessagingService.schemas import Service
 
@@ -15,6 +16,13 @@ engine = create_engine(
 SessionLocal = sessionmaker(autocommit=False, autoflush=False, bind=engine)
 
 Base = declarative_base()
+
+
+# Enums
+class ReservationStatus(EnumType):
+    CONFIRMED = "confirmed"
+    PENDING = "pending"
+    CANCELED = "canceled"
 
 
 # Abstract Classes
@@ -30,6 +38,14 @@ class IdMapper(Base):
     external_id = Column(Integer)
 
 
+class PropertyIdMapper(IdMapper): __abstract__ = True
+
+
+class ReservationIdMapper(IdMapper):
+    __abstract__ = True
+    reservation_status = Column(Enum(ReservationStatus))
+
+
 # Concrete Classes - SequenceId
 class SequenceIdProperties(SequenceId): __tablename__ = "sequence_id_properties"
 
@@ -38,23 +54,23 @@ class SequenceIdReservations(SequenceId): __tablename__ = "sequence_id_reservati
 
 
 # Concrete Classes - PropertyIdMappers
-class PropertyIdMapperZooking(IdMapper): __tablename__ = "property_id_mapper_zooking"
+class PropertyIdMapperZooking(PropertyIdMapper): __tablename__ = "property_id_mapper_zooking"
 
 
-class PropertyIdMapperClickAndGo(IdMapper): __tablename__ = "property_id_mapper_clickandgo"
+class PropertyIdMapperClickAndGo(PropertyIdMapper): __tablename__ = "property_id_mapper_clickandgo"
 
 
-class PropertyIdMapperEarthStayin(IdMapper): __tablename__ = "property_id_mapper_earthstayin"
+class PropertyIdMapperEarthStayin(PropertyIdMapper): __tablename__ = "property_id_mapper_earthstayin"
 
 
 # Concrete Classes - ReservationIdMappers
-class ReservationIdMapperZooking(IdMapper): __tablename__ = "reservation_id_mapper_zooking"
+class ReservationIdMapperZooking(ReservationIdMapper): __tablename__ = "reservation_id_mapper_zooking"
 
 
-class ReservationIdMapperClickAndGo(IdMapper): __tablename__ = "reservation_id_mapper_clickandgo"
+class ReservationIdMapperClickAndGo(ReservationIdMapper): __tablename__ = "reservation_id_mapper_clickandgo"
 
 
-class ReservationIdMapperEarthStayin(IdMapper): __tablename__ = "reservation_id_mapper_earthstayin"
+class ReservationIdMapperEarthStayin(ReservationIdMapper): __tablename__ = "reservation_id_mapper_earthstayin"
 
 
 # Mappers (service -> corresponding Property or Reservation IdMapper)
@@ -168,11 +184,20 @@ def get_reservation_external_id(service: Service, internal_reservation_id: int) 
         return reservation.external_id if reservation is not None else reservation
 
 
+def get_reservation_by_external_id(service: Service, external_reservation_id: int) -> ReservationIdMapper:
+    with SessionLocal() as db:
+        ReservationIdMapper = reservation_id_mapper_by_service[service]
+        print("external_reservation_id", external_reservation_id)
+        return db.query(ReservationIdMapper).filter(
+            ReservationIdMapper.external_id == external_reservation_id).first()
+
+
 def get_reservation_internal_id(service: Service, external_reservation_id: int) -> int:
     with SessionLocal() as db:
         ReservationIdMapper = reservation_id_mapper_by_service[service]
         print("external_reservation_id", external_reservation_id)
-        reservation = db.query(ReservationIdMapper).filter(ReservationIdMapper.external_id == external_reservation_id).first()
+        reservation = db.query(ReservationIdMapper).filter(
+            ReservationIdMapper.external_id == external_reservation_id).first()
         return reservation.internal_id if reservation is not None else reservation
 
 
@@ -186,10 +211,10 @@ def set_and_get_reservation_internal_id(service: Service, external_reservation_i
         return mapped_id.internal_id
 
 
-def set_reservation_internal_id(service: Service, external_reservation_id):
+def set_reservation_internal_id(service: Service, external_reservation_id: int, reservation_status: str):
     with SessionLocal() as db:
         ReservationIdMapper = reservation_id_mapper_by_service[service]
-        mapped_id = ReservationIdMapper(external_id=external_reservation_id)
+        mapped_id = ReservationIdMapper(external_id=external_reservation_id, reservation_status=ReservationStatus(reservation_status))
         db.add(mapped_id)
         db.commit()
         db.refresh(mapped_id)

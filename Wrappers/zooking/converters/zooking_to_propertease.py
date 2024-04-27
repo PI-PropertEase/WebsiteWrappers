@@ -2,7 +2,7 @@ from ProjectUtils.MessagingService.schemas import Service
 from Wrappers.base_wrapper.utils import invert_map
 from Wrappers.models import set_property_internal_id, set_and_get_reservation_internal_id, \
     set_or_get_property_internal_id, set_reservation_internal_id, \
-    get_reservation_internal_id
+    get_reservation_internal_id, ReservationIdMapper
 from Wrappers.zooking.converters.propertease_to_zooking import ProperteaseToZooking
 
 
@@ -102,10 +102,12 @@ class ZookingToPropertease:
         }
 
     @staticmethod
-    def convert_reservation(zooking_reservation, owner_email: str, internal_id=None):
+    def convert_reservation(zooking_reservation, owner_email: str, reservation: ReservationIdMapper):
         print("\nzooking_reservation", zooking_reservation)
+        reservation_status = zooking_reservation.get("reservation_status")
         propertease_reservation = {
-            "_id": internal_id if internal_id is not None else set_reservation_internal_id(Service.ZOOKING, zooking_reservation.get("id")),
+            "_id": reservation.internal_id if reservation is not None else
+                set_reservation_internal_id(Service.ZOOKING, zooking_reservation.get("id"), reservation_status),
             "property_id": set_or_get_property_internal_id(Service.ZOOKING, zooking_reservation.get("property_id")),
             "owner_email": owner_email,
             "begin_datetime": zooking_reservation.get("arrival"),
@@ -114,7 +116,7 @@ class ZookingToPropertease:
             "client_name": zooking_reservation.get("client_name"),
             "client_phone": zooking_reservation.get("client_phone"),
             "cost": zooking_reservation.get("cost"),
-            "reservation_status": zooking_reservation.get("reservation_status"),
+            "reservation_status": reservation_status,
         }
         print("\npropertease_reservation", propertease_reservation)
         return propertease_reservation
