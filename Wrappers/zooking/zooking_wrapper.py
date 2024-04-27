@@ -8,7 +8,7 @@ from ProjectUtils.MessagingService.queue_definitions import (
     EXCHANGE_NAME,
     WRAPPER_ZOOKING_ROUTING_KEY, WRAPPER_BROADCAST_ROUTING_KEY,
 )
-from ..models import Service, get_property_external_id, get_reservation_external_id, get_reservation_internal_id, \
+from ..models import Service, get_property_external_id, get_reservation_external_id, \
     get_reservation_by_external_id, ReservationStatus
 
 
