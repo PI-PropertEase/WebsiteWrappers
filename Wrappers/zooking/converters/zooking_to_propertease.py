@@ -7,6 +7,7 @@ from Wrappers.zooking.converters.propertease_to_zooking import ProperteaseToZook
 
 
 class ZookingToPropertease:
+    service = ProperteaseToZooking.service
     bedroom_type_map = invert_map(ProperteaseToZooking.bedroom_type_map)
     fixtures_map = invert_map(ProperteaseToZooking.fixtures_map)
     amenities_map = invert_map(ProperteaseToZooking.amenities_map)
@@ -14,7 +15,7 @@ class ZookingToPropertease:
     @staticmethod
     def convert_property(zooking_property):
         propertease_property = dict()
-        propertease_property["_id"] = set_property_internal_id(Service.ZOOKING, zooking_property.get("id"))
+        propertease_property["_id"] = set_property_internal_id(ZookingToPropertease.service, zooking_property.get("id"))
         propertease_property["user_email"] = zooking_property.get("user_email")
         propertease_property["title"] = zooking_property.get("name")
         propertease_property["address"] = zooking_property.get("address")
@@ -109,12 +110,12 @@ class ZookingToPropertease:
             reservation_id = reservation.internal_id
         else:
             reservation_status = zooking_reservation.get("reservation_status")
-            reservation_id = create_reservation(Service.ZOOKING, zooking_reservation.get("id"), reservation_status).internal_id
+            reservation_id = create_reservation(ZookingToPropertease.service, zooking_reservation.get("id"), reservation_status).internal_id
 
         propertease_reservation = {
             "_id": reservation_id,
             "reservation_status": reservation_status,
-            "property_id": set_or_get_property_internal_id(Service.ZOOKING, zooking_reservation.get("property_id")),
+            "property_id": set_or_get_property_internal_id(ZookingToPropertease.service, zooking_reservation.get("property_id")),
             "owner_email": owner_email,
             "begin_datetime": zooking_reservation.get("arrival"),
             "end_datetime": zooking_reservation.get("departure"),

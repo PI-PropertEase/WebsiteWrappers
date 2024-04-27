@@ -5,7 +5,7 @@ from ProjectUtils.MessagingService.schemas import (
     MessageType,
     to_json, from_json
 )
-from Wrappers.base_wrapper.api_wrapper import BaseWrapper
+from Wrappers.base_wrapper.wrapper import BaseWrapper
 from Wrappers.models import set_property_mapped_id
 
 

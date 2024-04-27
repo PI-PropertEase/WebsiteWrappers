@@ -2,13 +2,14 @@ import requests
 
 from .converters.clickandgo_to_propertease import ClickandgoToPropertease
 from .converters.propertease_to_clickandgo import ProperteaseToClickandgo
-from ..base_wrapper.api_wrapper import BaseWrapper
+from ..base_wrapper.wrapper import BaseWrapper
 from ProjectUtils.MessagingService.queue_definitions import (
     channel,
     EXCHANGE_NAME,
     WRAPPER_CLICKANDGO_ROUTING_KEY, WRAPPER_BROADCAST_ROUTING_KEY,
 )
-from ..models import set_property_internal_id, Service, get_property_external_id, get_reservation_external_id
+from ..models import set_property_internal_id, Service, get_property_external_id, get_reservation_external_id, \
+    get_reservation_by_external_id, ReservationStatus
 
 
 class CNGWrapper(BaseWrapper):
@@ -68,8 +69,28 @@ class CNGWrapper(BaseWrapper):
         ]
         return converted_properties
 
+    def import_new_or_newly_canceled_reservations(self, user):
+        email = user.get("email")
+        url = f"{self.url}reservations/upcoming?email={email}"
+        print("Importing new reservations...")
+        zooking_reservations = requests.get(url=url).json()
+        converted_reservations = [
+            ClickandgoToPropertease.convert_reservation(r, email, reservation)
+            for r in zooking_reservations
+            if (reservation := get_reservation_by_external_id(self.service_schema, r["id"])) is None or
+               (r["reservation_status"] == "canceled" and reservation.reservation_status != ReservationStatus.CANCELED)
+        ]
+        print(converted_reservations)
+        return converted_reservations
+
+    def confirm_reservation(self, reservation_internal_id):
+        _id = get_reservation_external_id(self.service_schema, reservation_internal_id)
+        url = self.url + f"reservations/{_id}"
+        print("Confirming reservation...", reservation_internal_id)
+        requests.put(url=url, json={"reservation_status": "confirmed"})
+
     def delete_reservation(self, reservation_internal_id):
-        _id = get_reservation_external_id(Service.CLICKANDGO, reservation_internal_id)
+        _id = get_reservation_external_id(self.service_schema, reservation_internal_id)
         url = self.url + f"reservations/{_id}"
         print("Deleting reservation...", reservation_internal_id)
         requests.delete(url=url)

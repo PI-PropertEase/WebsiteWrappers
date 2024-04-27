@@ -2,7 +2,7 @@ import requests
 
 from Wrappers.zooking.converters.propertease_to_zooking import ProperteaseToZooking
 from Wrappers.zooking.converters.zooking_to_propertease import ZookingToPropertease
-from ..base_wrapper.api_wrapper import BaseWrapper
+from ..base_wrapper.wrapper import BaseWrapper
 from ProjectUtils.MessagingService.queue_definitions import (
     channel,
     EXCHANGE_NAME,
@@ -78,19 +78,19 @@ class ZookingWrapper(BaseWrapper):
         converted_reservations = [
             ZookingToPropertease.convert_reservation(r, email, reservation)
             for r in zooking_reservations
-            if (reservation := get_reservation_by_external_id(Service.ZOOKING, r["id"])) is None or
+            if (reservation := get_reservation_by_external_id(self.service_schema, r["id"])) is None or
                (r["reservation_status"] == "canceled" and reservation.reservation_status != ReservationStatus.CANCELED)
         ]
         return converted_reservations
 
     def confirm_reservation(self, reservation_internal_id):
-        _id = get_reservation_external_id(Service.ZOOKING, reservation_internal_id)
+        _id = get_reservation_external_id(self.service_schema, reservation_internal_id)
         url = self.url + f"reservations/{_id}"
         print("Confirming reservation...", reservation_internal_id)
         requests.put(url=url, json={"reservation_status": "confirmed"})
 
     def delete_reservation(self, reservation_internal_id):
-        _id = get_reservation_external_id(Service.ZOOKING, reservation_internal_id)
+        _id = get_reservation_external_id(self.service_schema, reservation_internal_id)
         url = self.url + f"reservations/{_id}"
         print("Deleting reservation...", reservation_internal_id)
         requests.delete(url=url)

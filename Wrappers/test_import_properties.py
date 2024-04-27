@@ -27,7 +27,7 @@ def run():
 
             channel.basic_publish(
                 exchange=EXCHANGE_NAME,
-                routing_key=WRAPPER_EARTHSTAYIN_ROUTING_KEY,
+                routing_key=WRAPPER_ZOOKING_ROUTING_KEY,
                 body=to_json(body),
                 properties=pika.BasicProperties(delivery_mode=pika.spec.PERSISTENT_DELIVERY_MODE)
             )

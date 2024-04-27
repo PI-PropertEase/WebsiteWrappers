@@ -3,6 +3,7 @@ from Wrappers.models import get_property_external_id
 
 
 class ProperteaseToClickandgo:
+    service = Service.CLICKANDGO
     bedroom_type_map = {
         "single": "single",
         "king": "king",
@@ -19,7 +20,7 @@ class ProperteaseToClickandgo:
     def convert_property(propertease_property):
         clickandgo_property = dict()
         property_id = clickandgo_property.get("_id")
-        clickandgo_property["id"] = None if property_id is None else get_property_external_id(Service.ZOOKING,
+        clickandgo_property["id"] = None if property_id is None else get_property_external_id(ProperteaseToClickandgo.service,
                                                                                               property_id)
         clickandgo_property["user_email"] = propertease_property.get("user_email")
         clickandgo_property["name"] = propertease_property.get("title")

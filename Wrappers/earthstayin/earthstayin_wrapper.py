@@ -2,7 +2,7 @@ import requests
 
 from .converters.earthstayin_to_propertease import EarthstayinToPropertease
 from .converters.propertease_to_earthstayin import ProperteaseToEarthstayin
-from ..base_wrapper.api_wrapper import BaseWrapper
+from ..base_wrapper.wrapper import BaseWrapper
 from ProjectUtils.MessagingService.queue_definitions import (
     channel,
     EXCHANGE_NAME,
