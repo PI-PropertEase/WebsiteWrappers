@@ -3,6 +3,7 @@ from Wrappers.models import get_property_external_id
 
 
 class ProperteaseToEarthstayin:
+    service = Service.EARTHSTAYIN
     bedroom_type_map = {
         "single": "single_bed",
         "king": "king_bed",
@@ -19,7 +20,7 @@ class ProperteaseToEarthstayin:
     def convert_property(propertease_property):
         earthstayin_property = dict()
         property_id = earthstayin_property.get("_id")
-        earthstayin_property["id"] = None if property_id is None else get_property_external_id(Service.EARTHSTAYIN,
+        earthstayin_property["id"] = None if property_id is None else get_property_external_id(ProperteaseToEarthstayin.service,
                                                                                                property_id)
         earthstayin_property["user_email"] = propertease_property.get("user_email")
         earthstayin_property["name"] = propertease_property.get("title")

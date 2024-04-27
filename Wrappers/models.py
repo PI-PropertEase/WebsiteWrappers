@@ -202,15 +202,15 @@ def create_reservation(service: Service, external_reservation_id: int, reservati
         return mapped_id
 
 
-### TO BE GONE
-def set_and_get_reservation_internal_id(service: Service, external_reservation_id):
+def update_reservation(reservation_to_update_internal_id: int, reservation_status: str):
     with SessionLocal() as db:
-        ReservationIdMapper = reservation_id_mapper_by_service[service]
-        mapped_id = ReservationIdMapper(external_id=external_reservation_id)
-        db.add(mapped_id)
+        print(reservation_status)
+        print(ReservationStatus(reservation_status))
+        reservation_to_update = db.query(ReservationIdMapper).get(reservation_to_update_internal_id)
+        reservation_to_update.reservation_status = ReservationStatus(reservation_status)
         db.commit()
-        db.refresh(mapped_id)
-        return mapped_id.internal_id
+        db.refresh(reservation_to_update)
+        return reservation_to_update
 
 
 Base.metadata.create_all(bind=engine)

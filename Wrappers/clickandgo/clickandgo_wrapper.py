@@ -63,9 +63,9 @@ class CNGWrapper(BaseWrapper):
         email = user.get("email")
         url = self.url + "reservations?email=" + email
         print("Importing reservations...")
-        zooking_reservations = requests.get(url=url).json()
+        clickandgo_reservations = requests.get(url=url).json()
         converted_properties = [
-            ClickandgoToPropertease.convert_reservation(r, email) for r in zooking_reservations
+            ClickandgoToPropertease.convert_reservation(r, email) for r in clickandgo_reservations
         ]
         return converted_properties
 
@@ -73,14 +73,13 @@ class CNGWrapper(BaseWrapper):
         email = user.get("email")
         url = f"{self.url}reservations/upcoming?email={email}"
         print("Importing new reservations...")
-        zooking_reservations = requests.get(url=url).json()
+        clickandgo_reservations = requests.get(url=url).json()
         converted_reservations = [
             ClickandgoToPropertease.convert_reservation(r, email, reservation)
-            for r in zooking_reservations
+            for r in clickandgo_reservations
             if (reservation := get_reservation_by_external_id(self.service_schema, r["id"])) is None or
                (r["reservation_status"] == "canceled" and reservation.reservation_status != ReservationStatus.CANCELED)
         ]
-        print(converted_reservations)
         return converted_reservations
 
     def confirm_reservation(self, reservation_internal_id):
