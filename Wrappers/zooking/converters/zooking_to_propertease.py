@@ -1,10 +1,13 @@
 from ProjectUtils.MessagingService.schemas import Service
 from Wrappers.base_wrapper.utils import invert_map
-from Wrappers.models import set_and_get_property_internal_id
+from Wrappers.models import set_property_internal_id, \
+    get_property_internal_id, create_reservation, \
+    ReservationIdMapper, ReservationStatus, update_reservation
 from Wrappers.zooking.converters.propertease_to_zooking import ProperteaseToZooking
 
 
 class ZookingToPropertease:
+    service = ProperteaseToZooking.service
     bedroom_type_map = invert_map(ProperteaseToZooking.bedroom_type_map)
     fixtures_map = invert_map(ProperteaseToZooking.fixtures_map)
     amenities_map = invert_map(ProperteaseToZooking.amenities_map)
@@ -12,7 +15,7 @@ class ZookingToPropertease:
     @staticmethod
     def convert_property(zooking_property):
         propertease_property = dict()
-        propertease_property["_id"] = set_and_get_property_internal_id(Service.ZOOKING, zooking_property.get("id"))
+        propertease_property["_id"] = set_property_internal_id(ZookingToPropertease.service, zooking_property.get("id"))
         propertease_property["user_email"] = zooking_property.get("user_email")
         propertease_property["title"] = zooking_property.get("name")
         propertease_property["address"] = zooking_property.get("address")
@@ -99,3 +102,27 @@ class ZookingToPropertease:
             "allow_pets": False,
         }
 
+    @staticmethod
+    def convert_reservation(zooking_reservation, owner_email: str, reservation: ReservationIdMapper = None):
+        print("\nzooking_reservation", zooking_reservation)
+        reservation_status = zooking_reservation.get("reservation_status")
+        if reservation is not None:
+            reservation_id = reservation.internal_id
+            update_reservation(ZookingToPropertease.service, reservation_id, reservation_status)
+        else:
+            reservation_id = create_reservation(ZookingToPropertease.service, zooking_reservation.get("id"), reservation_status).internal_id
+
+        propertease_reservation = {
+            "_id": reservation_id,
+            "reservation_status": reservation_status,
+            "property_id": get_property_internal_id(ZookingToPropertease.service, zooking_reservation.get("property_id")),
+            "owner_email": owner_email,
+            "begin_datetime": zooking_reservation.get("arrival"),
+            "end_datetime": zooking_reservation.get("departure"),
+            "client_email": zooking_reservation.get("client_email"),
+            "client_name": zooking_reservation.get("client_name"),
+            "client_phone": zooking_reservation.get("client_phone"),
+            "cost": zooking_reservation.get("cost"),
+        }
+        print("\npropertease_reservation", propertease_reservation)
+        return propertease_reservation

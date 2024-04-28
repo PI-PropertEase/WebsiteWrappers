@@ -1,10 +1,12 @@
 from ProjectUtils.MessagingService.schemas import Service
 from Wrappers.base_wrapper.utils import invert_map
 from Wrappers.clickandgo.converters.propertease_to_clickandgo import ProperteaseToClickandgo
-from Wrappers.models import set_and_get_property_internal_id
+from Wrappers.models import set_property_internal_id, \
+    get_property_internal_id, ReservationIdMapper, create_reservation, ReservationStatus, update_reservation
 
 
 class ClickandgoToPropertease:
+    service = ProperteaseToClickandgo.service
     bedroom_type_map = invert_map(ProperteaseToClickandgo.bedroom_type_map)
     fixtures_map = invert_map(ProperteaseToClickandgo.fixtures_map)
     amenities_map = invert_map(ProperteaseToClickandgo.amenities_map)
@@ -12,7 +14,7 @@ class ClickandgoToPropertease:
     @staticmethod
     def convert_property(clickandgo_property):
         propertease_property = {}
-        propertease_property["_id"] = set_and_get_property_internal_id(Service.CLICKANDGO, clickandgo_property.get("id"))
+        propertease_property["_id"] = set_property_internal_id(ClickandgoToPropertease.service, clickandgo_property.get("id"))
         propertease_property["user_email"] = clickandgo_property.get("user_email")
         propertease_property["title"] = clickandgo_property.get("name")
         propertease_property["address"] = clickandgo_property.get("address")
@@ -109,4 +111,29 @@ class ClickandgoToPropertease:
                 "phone_number": clickandgo_housemanager.get("phone_number"),
             }
         ]
+
+    @staticmethod
+    def convert_reservation(clickandgo_reservation, owner_email: str, reservation: ReservationIdMapper = None):
+        print("\nclickandgo_reservation", clickandgo_reservation)
+        reservation_status = clickandgo_reservation.get("reservation_status")
+        if reservation is not None:
+            reservation_id = reservation.internal_id
+            update_reservation(ClickandgoToPropertease.service, reservation_id, reservation_status)
+        else:
+            reservation_id = create_reservation(ClickandgoToPropertease.service, clickandgo_reservation.get("id"), reservation_status).internal_id
+
+        propertease_reservation = {
+            "_id": reservation_id,
+            "reservation_status": reservation_status,
+            "property_id": get_property_internal_id(ClickandgoToPropertease.service, clickandgo_reservation.get("property_id")),
+            "owner_email": owner_email,
+            "begin_datetime": clickandgo_reservation.get("arrival"),
+            "end_datetime": clickandgo_reservation.get("departure"),
+            "client_email": clickandgo_reservation.get("client_email"),
+            "client_name": clickandgo_reservation.get("client_name"),
+            "client_phone": clickandgo_reservation.get("client_phone"),
+            "cost": clickandgo_reservation.get("cost"),
+        }
+        print("\npropertease_reservation", propertease_reservation)
+        return propertease_reservation
 
