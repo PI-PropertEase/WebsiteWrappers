@@ -29,18 +29,21 @@ def handle_recv(channel, method, properties, body, wrapper):
             channel.basic_publish(exchange=EXCHANGE_NAME, routing_key=WRAPPER_TO_APP_ROUTING_KEY, body=to_json(
                 MessageFactory.create_import_properties_response_message(wrapper.service_schema, properties)
             ))
-            if len(properties) > 0:
-                reservations = wrapper.import_reservations(body)
-                channel.basic_publish(exchange=EXCHANGE_NAME, routing_key=WRAPPER_TO_CALENDAR_ROUTING_KEY, body=to_json(
-                    MessageFactory.create_import_reservations_response_message(wrapper.service_schema, reservations)
-                ))
-        case MessageType.PROPERTY_IMPORT_DUPLICATE:
-            set_property_mapped_id(wrapper.service_schema, body["old_internal_id"], body["new_internal_id"])
+        case MessageType.RESERVATION_IMPORT_INITIAL_REQUEST:
+            # 1. Update the internal ids of the properties (because of duplicated properties in PropertyService)
+            # 2. Import the reservations with the newly updated internal ids to map those into
+            old_new_id_map = body["old_new_id_map"]
+            for old_internal_id, new_internal_id in old_new_id_map.items():
+                set_property_mapped_id(wrapper.service_schema, old_internal_id, new_internal_id)
+            reservations = wrapper.import_reservations(body)
+            channel.basic_publish(exchange=EXCHANGE_NAME, routing_key=WRAPPER_TO_CALENDAR_ROUTING_KEY, body=to_json(
+                MessageFactory.create_import_reservations_response_message(wrapper.service_schema, reservations)
+            ))
 
     channel.basic_ack(delivery_tag)
 
 
-def run_property_handler(wrapper: BaseWrapper):
+def run_regular_events_handler(wrapper: BaseWrapper):
     channel.basic_consume(
         queue=wrapper.queue,
         on_message_callback=lambda ch, method, properties, body: handle_recv(ch, method, properties, body, wrapper)
