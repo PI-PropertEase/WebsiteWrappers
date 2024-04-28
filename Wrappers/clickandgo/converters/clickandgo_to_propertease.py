@@ -2,7 +2,7 @@ from ProjectUtils.MessagingService.schemas import Service
 from Wrappers.base_wrapper.utils import invert_map
 from Wrappers.clickandgo.converters.propertease_to_clickandgo import ProperteaseToClickandgo
 from Wrappers.models import set_property_internal_id, \
-    set_or_get_property_internal_id, ReservationIdMapper, create_reservation, ReservationStatus, update_reservation
+    get_property_internal_id, ReservationIdMapper, create_reservation, ReservationStatus, update_reservation
 
 
 class ClickandgoToPropertease:
@@ -113,19 +113,19 @@ class ClickandgoToPropertease:
         ]
 
     @staticmethod
-    def convert_reservation(clickandgo_reservation, owner_email: str, reservation: ReservationIdMapper):
+    def convert_reservation(clickandgo_reservation, owner_email: str, reservation: ReservationIdMapper = None):
         print("\nclickandgo_reservation", clickandgo_reservation)
         reservation_status = clickandgo_reservation.get("reservation_status")
         if reservation is not None:
             reservation_id = reservation.internal_id
-            update_reservation(reservation_id, reservation_status)
+            update_reservation(ClickandgoToPropertease.service, reservation_id, reservation_status)
         else:
             reservation_id = create_reservation(ClickandgoToPropertease.service, clickandgo_reservation.get("id"), reservation_status).internal_id
 
         propertease_reservation = {
             "_id": reservation_id,
             "reservation_status": reservation_status,
-            "property_id": set_or_get_property_internal_id(ClickandgoToPropertease.service, clickandgo_reservation.get("property_id")),
+            "property_id": get_property_internal_id(ClickandgoToPropertease.service, clickandgo_reservation.get("property_id")),
             "owner_email": owner_email,
             "begin_datetime": clickandgo_reservation.get("arrival"),
             "end_datetime": clickandgo_reservation.get("departure"),

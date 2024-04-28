@@ -9,15 +9,15 @@ from ProjectUtils.MessagingService.queue_definitions import (
     WRAPPER_ZOOKING_ROUTING_KEY, WRAPPER_BROADCAST_ROUTING_KEY,
 )
 from ..models import Service, get_property_external_id, get_reservation_external_id, \
-    get_reservation_by_external_id, ReservationStatus
+    get_reservation_by_external_id, ReservationStatus, get_property_internal_id
 from ProjectUtils.MessagingService.schemas import Service as ServiceSchema
 
 
 class ZookingWrapper(BaseWrapper):
-    def __init__(self) -> None:
+    def __init__(self, queue: str) -> None:
         super().__init__(
             url="http://localhost:8000/",
-            queue="zooking_queue",
+            queue=queue,
             service_schema=ServiceSchema.ZOOKING,
         )
         zooking_queue = channel.queue_declare(queue=self.queue, durable=True)
@@ -78,8 +78,9 @@ class ZookingWrapper(BaseWrapper):
         converted_reservations = [
             ZookingToPropertease.convert_reservation(r, email, reservation)
             for r in zooking_reservations
-            if (reservation := get_reservation_by_external_id(self.service_schema, r["id"])) is None or
-               (r["reservation_status"] == "canceled" and reservation.reservation_status != ReservationStatus.CANCELED)
+            if get_property_internal_id(self.service_schema, r["property_id"]) is not None and
+               ((reservation := get_reservation_by_external_id(self.service_schema, r["id"])) is None or
+               (r["reservation_status"] == "canceled" and reservation.reservation_status != ReservationStatus.CANCELED))
         ]
         return converted_reservations
 

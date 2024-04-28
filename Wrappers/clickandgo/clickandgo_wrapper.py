@@ -9,14 +9,14 @@ from ProjectUtils.MessagingService.queue_definitions import (
     WRAPPER_CLICKANDGO_ROUTING_KEY, WRAPPER_BROADCAST_ROUTING_KEY,
 )
 from ..models import set_property_internal_id, Service, get_property_external_id, get_reservation_external_id, \
-    get_reservation_by_external_id, ReservationStatus
+    get_reservation_by_external_id, ReservationStatus, get_property_internal_id
 
 
 class CNGWrapper(BaseWrapper):
-    def __init__(self) -> None:
+    def __init__(self, queue: str) -> None:
         super().__init__(
             url="http://localhost:8002/",
-            queue="clickandgo_queue",
+            queue=queue,
             service_schema=Service.CLICKANDGO,
         )
         cng_queue = channel.queue_declare(queue=self.queue, durable=True)
@@ -77,8 +77,9 @@ class CNGWrapper(BaseWrapper):
         converted_reservations = [
             ClickandgoToPropertease.convert_reservation(r, email, reservation)
             for r in clickandgo_reservations
-            if (reservation := get_reservation_by_external_id(self.service_schema, r["id"])) is None or
-               (r["reservation_status"] == "canceled" and reservation.reservation_status != ReservationStatus.CANCELED)
+            if get_property_internal_id(self.service_schema, r["property_id"]) is not None and
+               ((reservation := get_reservation_by_external_id(self.service_schema, r["id"])) is None or
+               (r["reservation_status"] == "canceled" and reservation.reservation_status != ReservationStatus.CANCELED))
         ]
         return converted_reservations
 

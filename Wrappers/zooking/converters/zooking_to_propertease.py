@@ -1,7 +1,7 @@
 from ProjectUtils.MessagingService.schemas import Service
 from Wrappers.base_wrapper.utils import invert_map
 from Wrappers.models import set_property_internal_id, \
-    set_or_get_property_internal_id, create_reservation, \
+    get_property_internal_id, create_reservation, \
     ReservationIdMapper, ReservationStatus, update_reservation
 from Wrappers.zooking.converters.propertease_to_zooking import ProperteaseToZooking
 
@@ -103,19 +103,19 @@ class ZookingToPropertease:
         }
 
     @staticmethod
-    def convert_reservation(zooking_reservation, owner_email: str, reservation: ReservationIdMapper):
+    def convert_reservation(zooking_reservation, owner_email: str, reservation: ReservationIdMapper = None):
         print("\nzooking_reservation", zooking_reservation)
         reservation_status = zooking_reservation.get("reservation_status")
         if reservation is not None:
             reservation_id = reservation.internal_id
-            update_reservation(reservation_id, reservation_status)
+            update_reservation(ZookingToPropertease.service, reservation_id, reservation_status)
         else:
             reservation_id = create_reservation(ZookingToPropertease.service, zooking_reservation.get("id"), reservation_status).internal_id
 
         propertease_reservation = {
             "_id": reservation_id,
             "reservation_status": reservation_status,
-            "property_id": set_or_get_property_internal_id(ZookingToPropertease.service, zooking_reservation.get("property_id")),
+            "property_id": get_property_internal_id(ZookingToPropertease.service, zooking_reservation.get("property_id")),
             "owner_email": owner_email,
             "begin_datetime": zooking_reservation.get("arrival"),
             "end_datetime": zooking_reservation.get("departure"),

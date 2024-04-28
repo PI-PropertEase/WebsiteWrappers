@@ -29,10 +29,11 @@ def handle_recv(channel, method, properties, body, wrapper):
             channel.basic_publish(exchange=EXCHANGE_NAME, routing_key=WRAPPER_TO_APP_ROUTING_KEY, body=to_json(
                 MessageFactory.create_import_properties_response_message(wrapper.service_schema, properties)
             ))
-            reservations = wrapper.import_reservations(body)
-            channel.basic_publish(exchange=EXCHANGE_NAME, routing_key=WRAPPER_TO_CALENDAR_ROUTING_KEY, body=to_json(
-                MessageFactory.create_import_reservations_response_message(wrapper.service_schema, reservations)
-            ))
+            if len(properties) > 0:
+                reservations = wrapper.import_reservations(body)
+                channel.basic_publish(exchange=EXCHANGE_NAME, routing_key=WRAPPER_TO_CALENDAR_ROUTING_KEY, body=to_json(
+                    MessageFactory.create_import_reservations_response_message(wrapper.service_schema, reservations)
+                ))
         case MessageType.PROPERTY_IMPORT_DUPLICATE:
             set_property_mapped_id(wrapper.service_schema, body["old_internal_id"], body["new_internal_id"])
 
