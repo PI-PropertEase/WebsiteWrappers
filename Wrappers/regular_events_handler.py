@@ -43,7 +43,7 @@ def handle_recv(channel, method, properties, body, wrapper):
     channel.basic_ack(delivery_tag)
 
 
-def run_property_handler(wrapper: BaseWrapper):
+def run_regular_events_handler(wrapper: BaseWrapper):
     channel.basic_consume(
         queue=wrapper.queue,
         on_message_callback=lambda ch, method, properties, body: handle_recv(ch, method, properties, body, wrapper)
