@@ -10,7 +10,6 @@ from ProjectUtils.MessagingService.queue_definitions import (
 )
 from ..models import Service, get_property_external_id, get_reservation_external_id, \
     get_reservation_by_external_id, ReservationStatus, get_property_internal_id
-from ProjectUtils.MessagingService.schemas import Service as ServiceSchema
 
 
 class ZookingWrapper(BaseWrapper):
@@ -18,7 +17,7 @@ class ZookingWrapper(BaseWrapper):
         super().__init__(
             url="http://localhost:8000/",
             queue=queue,
-            service_schema=ServiceSchema.ZOOKING,
+            service_schema=Service.ZOOKING,
         )
         zooking_queue = channel.queue_declare(queue=self.queue, durable=True)
         channel.queue_bind(
@@ -38,7 +37,7 @@ class ZookingWrapper(BaseWrapper):
         requests.post(url=url, json=property)
 
     def update_property(self, prop_internal_id: int, prop_update_parameters: dict):
-        external_id = get_property_external_id(Service.ZOOKING, prop_internal_id)
+        external_id = get_property_external_id(self.service_schema, prop_internal_id)
         url = self.url + f"properties/{external_id}"
         print("Updating property...")
         print("internal_id", prop_internal_id, "external_id", external_id)

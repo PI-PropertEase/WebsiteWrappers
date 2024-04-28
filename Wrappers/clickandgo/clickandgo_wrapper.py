@@ -37,7 +37,7 @@ class CNGWrapper(BaseWrapper):
         requests.post(url=url, json=property)
 
     def update_property(self, prop_internal_id: int, prop_update_parameters: dict):
-        external_id = get_property_external_id(Service.CLICKANDGO, prop_internal_id)
+        external_id = get_property_external_id(self.service_schema, prop_internal_id)
         url = self.url + f"properties/{external_id}"
         print("Updating property...")
         print("internal_id", prop_internal_id, "external_id", external_id)
