@@ -13,16 +13,7 @@ from ProjectUtils.MessagingService.queue_definitions import (
     EXCHANGE_NAME,
     WRAPPER_TO_APP_ROUTING_KEY,
 )
-from pydantic import BaseModel
-
-# required for the fake_user fixture
-class User(BaseModel):
-    email: str
-
-
-@pytest.fixture
-def fake_user():
-    return User(email="cool_guy@gmail.com")
+from fixtures import fake_user
 
 
 """
@@ -32,7 +23,7 @@ def fake_user():
 """
 
 
-def test_import_properties_zooking_receive_message_return_properties(mocker: MockerFixture, fake_user: User):
+def test_import_properties_zooking_receive_message_return_properties(mocker: MockerFixture, fake_user):
     # mock/setup test
     channel_mock = MagicMock()
     method_mock = MagicMock()
@@ -42,9 +33,9 @@ def test_import_properties_zooking_receive_message_return_properties(mocker: Moc
     message_body = to_json(MessageFactory.create_import_properties_message(fake_user))
 
     user_properties_response = [
-                {"user_email":"cool_guy@gmail.com","name":"Cool house 🦼🛹","address":"Morada Miguel","curr_price":50.0,"description":"descrição não interessa a ninguém","number_of_guests":4,"square_meters":250,"bedrooms":{"bedroom_1":[{"number_beds":2,"bed_type":"king_bed"},{"number_beds":1,"bed_type":"single_bed"}]},"bathrooms":[{"name":"bathroom_groundfloor","bathroom_fixtures":["toilet","tub"]}],"amenities":["AC","wifi"],"additional_info":"Se cá aparecerem, recebem um rebuçado","id":11},
-                {"user_email":"cool_guy@gmail.com","name":"A mais fixe de todas 🪂🛸","address":"Morada João","curr_price":50.0,"description":"descrição não interessa a ninguém","number_of_guests":4,"square_meters":250,"bedrooms":{"bedroom_1":[{"number_beds":2,"bed_type":"king_bed"},{"number_beds":1,"bed_type":"single_bed"}]},"bathrooms":[{"name":"bathroom_groundfloor","bathroom_fixtures":["toilet","tub"]}],"amenities":["AC","wifi"],"additional_info":"Se cá aparecerem, recebem um rebuçado","id":12}
-            ]
+        {"user_email":"cool_guy@gmail.com","name":"Cool house 🦼🛹","address":"Morada Miguel","curr_price":50.0,"description":"descrição não interessa a ninguém","number_of_guests":4,"square_meters":250,"bedrooms":{"bedroom_1":[{"number_beds":2,"bed_type":"king_bed"},{"number_beds":1,"bed_type":"single_bed"}]},"bathrooms":[{"name":"bathroom_groundfloor","bathroom_fixtures":["toilet","tub"]}],"amenities":["AC","wifi"],"additional_info":"Se cá aparecerem, recebem um rebuçado","id":11},
+        {"user_email":"cool_guy@gmail.com","name":"A mais fixe de todas 🪂🛸","address":"Morada João","curr_price":50.0,"description":"descrição não interessa a ninguém","number_of_guests":4,"square_meters":250,"bedrooms":{"bedroom_1":[{"number_beds":2,"bed_type":"king_bed"},{"number_beds":1,"bed_type":"single_bed"}]},"bathrooms":[{"name":"bathroom_groundfloor","bathroom_fixtures":["toilet","tub"]}],"amenities":["AC","wifi"],"additional_info":"Se cá aparecerem, recebem um rebuçado","id":12}
+    ]
 
     def fake_internal_id(*args, **kwargs):
         return args[1] * 2      # 2 * property_external_id
@@ -79,7 +70,7 @@ def test_import_properties_zooking_receive_message_return_properties(mocker: Moc
     channel_mock.basic_ack.assert_called_once()
 
 
-def test_import_properties_clickandgo_receive_message_return_properties(mocker: MockerFixture, fake_user: User):
+def test_import_properties_clickandgo_receive_message_return_properties(mocker: MockerFixture, fake_user):
     # mock/setup test
     channel_mock = MagicMock()
     method_mock = MagicMock()
@@ -127,13 +118,13 @@ def test_import_properties_clickandgo_receive_message_return_properties(mocker: 
 
 
 
-def test_import_properties_earthstayin_receive_message_return_properties(mocker: MockerFixture, fake_user: User):
+def test_import_properties_earthstayin_receive_message_return_properties(mocker: MockerFixture, fake_user):
     # mock/setup test
     channel_mock = MagicMock()
     method_mock = MagicMock()
     properties_mock = MagicMock()
 
-    wrapper = EarthStayinWrapper(queue="clickandgo_regular_queue")
+    wrapper = EarthStayinWrapper(queue="earthstayin_regular_queue")
     message_body = to_json(MessageFactory.create_import_properties_message(fake_user))
 
     user_properties_response = [
