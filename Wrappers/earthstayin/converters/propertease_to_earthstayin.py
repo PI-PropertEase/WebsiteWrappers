@@ -15,6 +15,7 @@ class ProperteaseToEarthstayin:
         "free_wifi": "free_wifi",
         "parking_space": "car_parking",
     }
+    commission = 5 # percent
 
     @staticmethod
     def convert_property(propertease_property):
@@ -26,7 +27,10 @@ class ProperteaseToEarthstayin:
         earthstayin_property["name"] = propertease_property.get("title")
         earthstayin_property["address"] = propertease_property.get("address")
         earthstayin_property["description"] = propertease_property.get("description")
-        earthstayin_property["curr_price"] = propertease_property.get("price")
+        earthstayin_property["curr_price"] = ProperteaseToEarthstayin.convert_price(
+            propertease_price=propertease_property.get("price"),
+            after_commission=propertease_property.get("after_commission")
+        )
         earthstayin_property["number_of_guests"] = propertease_property.get("number_guests")
         earthstayin_property["square_meters"] = propertease_property.get("square_meters")
         earthstayin_property["bedrooms"] = None \
@@ -102,3 +106,7 @@ class ProperteaseToEarthstayin:
     def convert_additional_info(propertease_additional_info):
         additional_info_parts = propertease_additional_info.split(". This property has the following accessibilities: ")
         return additional_info_parts[0], additional_info_parts[-1].split(", ") if len(additional_info_parts) > 1 else []
+
+    @staticmethod
+    def convert_price(propertease_price: float, after_commission: bool) -> float:
+        return propertease_price / (1 - (ProperteaseToEarthstayin.commission / 100)) if after_commission else propertease_price 

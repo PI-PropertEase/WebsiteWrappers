@@ -15,6 +15,8 @@ class ProperteaseToClickandgo:
         "free_wifi": "wifi_free",
         "parking_space": "parking",
     }
+    commission = 2 # percent
+
 
     @staticmethod
     def convert_property(propertease_property):
@@ -26,7 +28,10 @@ class ProperteaseToClickandgo:
         clickandgo_property["name"] = propertease_property.get("title")
         clickandgo_property["address"] = propertease_property.get("address")
         clickandgo_property["description"] = propertease_property.get("description")
-        clickandgo_property["curr_price"] = propertease_property.get("price")
+        clickandgo_property["curr_price"] = ProperteaseToClickandgo.convert_price(
+            propertease_price=propertease_property.get("price"),
+            after_commission=propertease_property.get("after_commission")
+        )
         clickandgo_property["guest_num"] = propertease_property.get("number_guests")
         clickandgo_property["house_area"] = propertease_property.get("square_meters")
         clickandgo_property["bedrooms"] = None \
@@ -106,3 +111,7 @@ class ProperteaseToClickandgo:
                 "phone_number": propertease_contacts[0].get("phone_number"),
                 "languages": []
             } if len(propertease_contacts) > 0 else {}
+
+    @staticmethod
+    def convert_price(propertease_price: float, after_commission: bool) -> float:
+        return propertease_price / (1 - (ProperteaseToClickandgo.commission / 100)) if after_commission else propertease_price 
