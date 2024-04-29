@@ -15,6 +15,7 @@ class ProperteaseToZooking:
         "free_wifi": "wifi",
         "parking_space": "open_parking",
     }
+    commission = 0.03
 
     @staticmethod
     def convert_property(propertease_property):
@@ -26,7 +27,10 @@ class ProperteaseToZooking:
         zooking_property["name"] = propertease_property.get("title")
         zooking_property["address"] = propertease_property.get("address")
         zooking_property["description"] = propertease_property.get("description")
-        zooking_property["curr_price"] = propertease_property.get("price")
+        zooking_property["curr_price"] = ProperteaseToZooking.convert_price(
+            propertease_price=propertease_property.get("price"),
+            after_commission=propertease_property.get("after_commission")
+        )
         zooking_property["number_of_guests"] = propertease_property.get("number_guests")
         zooking_property["square_meters"] = propertease_property.get("square_meters")
         zooking_property["bedrooms"] = None \
@@ -80,3 +84,7 @@ class ProperteaseToZooking:
             converted_amenity for amenity in propertease_amenities
             if (converted_amenity := ProperteaseToZooking.amenities_map.get(amenity)) is not None
         ]
+    
+    @staticmethod
+    def convert_price(propertease_price: float, after_commission: bool) -> float:
+        return propertease_price * (1 + ProperteaseToZooking.commission) if after_commission else propertease_price 
