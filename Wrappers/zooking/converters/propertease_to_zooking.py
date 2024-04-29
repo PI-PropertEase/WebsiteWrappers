@@ -15,7 +15,7 @@ class ProperteaseToZooking:
         "free_wifi": "wifi",
         "parking_space": "open_parking",
     }
-    commission = 3 # percent
+    commission = 0.03
 
     @staticmethod
     def convert_property(propertease_property):
@@ -87,4 +87,4 @@ class ProperteaseToZooking:
     
     @staticmethod
     def convert_price(propertease_price: float, after_commission: bool) -> float:
-        return propertease_price / (1 - (ProperteaseToZooking.commission / 100)) if after_commission else propertease_price 
+        return propertease_price * (1 + ProperteaseToZooking.commission) if after_commission else propertease_price 

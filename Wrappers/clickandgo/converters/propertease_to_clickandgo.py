@@ -15,7 +15,7 @@ class ProperteaseToClickandgo:
         "free_wifi": "wifi_free",
         "parking_space": "parking",
     }
-    commission = 2 # percent
+    commission = 0.02
 
 
     @staticmethod
@@ -114,4 +114,4 @@ class ProperteaseToClickandgo:
 
     @staticmethod
     def convert_price(propertease_price: float, after_commission: bool) -> float:
-        return propertease_price / (1 - (ProperteaseToClickandgo.commission / 100)) if after_commission else propertease_price 
+        return propertease_price * (1 + ProperteaseToClickandgo.commission) if after_commission else propertease_price 
