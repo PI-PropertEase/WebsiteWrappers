@@ -17,11 +17,10 @@ CLICKANDGO_URL = "http://localhost:8002"
 
 def test_zooking_property_schema():
     zooking_property = requests.get(f"{ZOOKING_URL}/properties/1")
-    print("zooking propertyy!!!", zooking_property.json())
     try:
         ZookingPropertyBase.model_validate(zooking_property.json())
     except (ValidationError, requests.exceptions.JSONDecodeError):
-        pytest.fail(f"Failed to validate Zooking API property schema. Error:\n {traceback.print_exc()}")
+        pytest.fail("Failed to validate Zooking API property schema.")
 
 
 def test_zooking_reservation_schema():
@@ -30,7 +29,7 @@ def test_zooking_reservation_schema():
     try:
         ReservationBase.model_validate(zooking_reservation.json()[0])
     except (ValidationError, requests.exceptions.JSONDecodeError):
-        pytest.fail(f"Failed to validate Zooking API reservation schema. Error:\n {traceback.print_exc()}")
+        pytest.fail("Failed to validate Zooking API reservation schema.")
 
 
 def test_earthstayin_property_schema():
@@ -38,7 +37,7 @@ def test_earthstayin_property_schema():
     try:
         EarthStayinPropertyBase.model_validate(earthstayin_property.json())
     except (ValidationError, requests.exceptions.JSONDecodeError):
-        pytest.fail(f"Failed to validate Earthstayin API property schema. Error:\n {traceback.print_exc()}")
+        pytest.fail("Failed to validate Earthstayin API property schema.")
 
 
 def test_earthstayin_reservation_schema():
@@ -47,7 +46,7 @@ def test_earthstayin_reservation_schema():
     try:
         ReservationBase.model_validate(earthstayin_reservation.json()[0])
     except (ValidationError, requests.exceptions.JSONDecodeError):
-        pytest.fail(f"Failed to validate Earthstayin API reservation schema. Error:\n {traceback.print_exc()}")
+        pytest.fail("Failed to validate Earthstayin API reservation schema.")
 
 
 def test_clickandgo_property_schema():
@@ -55,7 +54,7 @@ def test_clickandgo_property_schema():
     try:
         CNGPropertyBase.model_validate(clickandgo_property.json())
     except (ValidationError, requests.exceptions.JSONDecodeError):
-        pytest.fail(f"Failed to validate Clickandgo API property schema. Error:\n {traceback.print_exc()}")
+        pytest.fail("Failed to validate Clickandgo API property schema.")
 
 
 def test_clickandgo_reservation_schema():
@@ -64,4 +63,4 @@ def test_clickandgo_reservation_schema():
     try:
         ReservationBase.model_validate(clickandgo_reservation.json()[0])
     except (ValidationError, requests.exceptions.JSONDecodeError):
-        pytest.fail(f"Failed to validate Clickandgo API reservation schema. Error:\n {traceback.print_exc()}")
+        pytest.fail("Failed to validate Clickandgo API reservation schema.")
