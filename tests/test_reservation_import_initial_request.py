@@ -4,7 +4,7 @@ from unittest.mock import MagicMock, Mock, call
 from Wrappers.regular_events_handler import handle_recv
 from Wrappers.zooking.zooking_wrapper import ZookingWrapper
 from ProjectUtils.MessagingService.schemas import MessageFactory, to_json
-from tests.fixtures import fake_user
+from tests.fixtures import fake_user, test_db
 from Wrappers.models import ReservationStatus, set_property_internal_id, ReservationIdMapperZooking
 from ProjectUtils.MessagingService.queue_definitions import (
     EXCHANGE_NAME,
@@ -78,7 +78,7 @@ def test_reservation_import_handler_initial_request_zooking_no_duplicates(mocker
     Test for the message RESERVATION_IMPORT_INITIAL_REQUEST, but PropertyService
     detected two that this property is a duplicate
 """
-def test_reservation_import_handler_initial_request_zooking_with_duplicates(mocker: MockerFixture, fake_user):
+def test_reservation_import_handler_initial_request_zooking_with_duplicates(mocker: MockerFixture, fake_user, test_db):
     # mock/setup test
     channel_mock = MagicMock()
     method_mock = MagicMock()
