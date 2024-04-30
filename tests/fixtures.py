@@ -1,9 +1,11 @@
+from typing import Optional
 import pytest
 from pydantic import BaseModel
 from Wrappers.models import Base, engine
 
 class User(BaseModel):
     email: str
+    connected_services: Optional[list[str]] = None
 
 
 @pytest.fixture
