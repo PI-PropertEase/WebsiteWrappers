@@ -13,7 +13,7 @@ from ProjectUtils.MessagingService.queue_definitions import (
     EXCHANGE_NAME,
     WRAPPER_TO_APP_ROUTING_KEY,
 )
-from fixtures import fake_user
+from fixtures import fake_user, test_db
 
 
 """
@@ -23,7 +23,7 @@ from fixtures import fake_user
 """
 
 
-def test_import_properties_zooking_receive_message_return_properties(mocker: MockerFixture, fake_user):
+def test_import_properties_zooking_receive_message_return_properties(mocker: MockerFixture, fake_user, test_db):
     # mock/setup test
     channel_mock = MagicMock()
     method_mock = MagicMock()
@@ -70,7 +70,7 @@ def test_import_properties_zooking_receive_message_return_properties(mocker: Moc
     channel_mock.basic_ack.assert_called_once()
 
 
-def test_import_properties_clickandgo_receive_message_return_properties(mocker: MockerFixture, fake_user):
+def test_import_properties_clickandgo_receive_message_return_properties(mocker: MockerFixture, fake_user, test_db):
     # mock/setup test
     channel_mock = MagicMock()
     method_mock = MagicMock()
@@ -118,7 +118,7 @@ def test_import_properties_clickandgo_receive_message_return_properties(mocker: 
 
 
 
-def test_import_properties_earthstayin_receive_message_return_properties(mocker: MockerFixture, fake_user):
+def test_import_properties_earthstayin_receive_message_return_properties(mocker: MockerFixture, fake_user, test_db):
     # mock/setup test
     channel_mock = MagicMock()
     method_mock = MagicMock()

@@ -18,7 +18,7 @@ import Wrappers.zooking.zooking_wrapper
     Test for the message RESERVATION_IMPORT_CONFIRM, that makes a "pending" reservation
     "confirmed"
 """
-def test_reservation_import_confirm_zooking(mocker: MockerFixture, fake_user):
+def test_reservation_import_confirm_zooking(mocker: MockerFixture, fake_user, test_db):
     # mock/setup test
     channel_mock = MagicMock()
     method_mock = MagicMock()

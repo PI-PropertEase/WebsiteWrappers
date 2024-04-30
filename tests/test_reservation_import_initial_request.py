@@ -18,7 +18,7 @@ import Wrappers.regular_events_handler
     Test for the message RESERVATION_IMPORT_INITIAL_REQUEST, when PropertyService
     doesn't detect any duplicate properties
 """
-def test_reservation_import_handler_initial_request_zooking_no_duplicates(mocker: MockerFixture, fake_user):
+def test_reservation_import_handler_initial_request_zooking_no_duplicates(mocker: MockerFixture, fake_user, test_db):
     # mock/setup test
     channel_mock = MagicMock()
     method_mock = MagicMock()
@@ -99,7 +99,7 @@ def test_reservation_import_handler_initial_request_zooking_with_duplicates(mock
     # that says 'the supplied property with internal id 1 is a duplicate, and the real internal id is 4')
     # so the property_11_internal_id should be 4
     property_11_internal_id = set_property_internal_id(Service.ZOOKING, 11) # gotta call the function
-    property_11_internal_id = 4 # check comment
+    property_11_internal_id = 4 # check comment above
 
     mock_requests_get = Mock()
     mock_response = Mock()
