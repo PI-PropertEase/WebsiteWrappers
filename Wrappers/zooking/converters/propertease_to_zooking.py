@@ -43,6 +43,7 @@ class ProperteaseToZooking:
             if (propertease_amenities := propertease_property.get("amenities")) is None \
             else ProperteaseToZooking.convert_amenities(propertease_amenities)
         zooking_property["additional_info"] = propertease_property.get("additional_info")
+        zooking_property["closed_time_frames"] = propertease_property.get("closed_time_frames")
         # the following elements are not supported in zooking -> no need to convert:
         # - house rules
         # - cancellation_policy

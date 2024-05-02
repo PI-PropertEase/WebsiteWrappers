@@ -46,11 +46,17 @@ class ReservationIdMapper(IdMapper):
     reservation_status = Column(Enum(ReservationStatus))
 
 
+class ManagementIdMapper(IdMapper): __abstract__ = True
+
+
 # Concrete Classes - SequenceId
 class SequenceIdProperties(SequenceId): __tablename__ = "sequence_id_properties"
 
 
 class SequenceIdReservations(SequenceId): __tablename__ = "sequence_id_reservations"
+
+
+class SequenceIdManagement(SequenceId): __tablename__ = "sequence_id_management"
 
 
 # Concrete Classes - PropertyIdMappers
@@ -73,6 +79,16 @@ class ReservationIdMapperClickAndGo(ReservationIdMapper): __tablename__ = "reser
 class ReservationIdMapperEarthStayin(ReservationIdMapper): __tablename__ = "reservation_id_mapper_earthstayin"
 
 
+# Concrete Classes - ManagementEventIdMappers
+class ManagementIdMapperZooking(ManagementIdMapper): __tablename__ = "management_id_mapper_zooking"
+
+
+class ManagementIdMapperClickAndGo(ManagementIdMapper): __tablename__ = "management_id_mapper_clickandgo"
+
+
+class ManagementIdMapperEarthStayin(ManagementIdMapper): __tablename__ = "management_id_mapper_earthstayin"
+
+
 # Mappers (service -> corresponding Property or Reservation IdMapper)
 property_id_mapper_by_service = {
     Service.ZOOKING: PropertyIdMapperZooking,
@@ -86,10 +102,17 @@ reservation_id_mapper_by_service = {
     Service.EARTHSTAYIN: ReservationIdMapperEarthStayin
 }
 
+management_id_mapper_by_service = {
+    Service.ZOOKING: ManagementIdMapperZooking,
+    Service.CLICKANDGO: ManagementIdMapperClickAndGo,
+    Service.EARTHSTAYIN: ManagementIdMapperEarthStayin
+}
+
 
 # Triggers
 @event.listens_for(SequenceIdProperties.__table__, 'after_create')
 @event.listens_for(SequenceIdReservations.__table__, 'after_create')
+@event.listens_for(SequenceIdManagement.__table__, 'after_create')
 def insert_initial_id(target, connection, **kw):
     connection.execute(target.insert().values(auto_incremented=1))
 
@@ -124,6 +147,22 @@ def increment_reservation_sequence_id_before_insert(mapper, connection, target):
 
 for ReservationIdMapper in reservation_id_mapper_by_service.values():
     listen(ReservationIdMapper, "before_insert", increment_reservation_sequence_id_before_insert)
+
+
+def increment_management_sequence_id_before_insert(mapper, connection, target):
+    session = SessionLocal()
+    try:
+        with session.begin():
+            global_counter = session.execute(text("SELECT auto_incremented FROM sequence_id_management")).scalar()
+            target.internal_id = global_counter
+            session.execute(text("UPDATE sequence_id_management SET auto_incremented = auto_incremented + 1"))
+    except SQLAlchemyError as e:
+        print(e)
+        session.rollback()
+
+
+for ManagementIdMapper in management_id_mapper_by_service.values():
+    listen(ManagementIdMapper, "before_insert", increment_management_sequence_id_before_insert)
 
 
 # Helper functions
@@ -193,7 +232,8 @@ def get_reservation_by_external_id(service: Service, external_reservation_id: in
 def create_reservation(service: Service, external_reservation_id: int, reservation_status: str):
     with SessionLocal() as db:
         ReservationIdMapper = reservation_id_mapper_by_service[service]
-        mapped_id = ReservationIdMapper(external_id=external_reservation_id, reservation_status=ReservationStatus(reservation_status))
+        mapped_id = ReservationIdMapper(external_id=external_reservation_id,
+                                        reservation_status=ReservationStatus(reservation_status))
         db.add(mapped_id)
         db.commit()
         db.refresh(mapped_id)
@@ -210,6 +250,25 @@ def update_reservation(service: Service, reservation_to_update_internal_id: int,
         db.commit()
         db.refresh(reservation_to_update)
         return reservation_to_update
+
+
+def get_management_event(service: Service, internal_management_event_id: int):
+    with SessionLocal() as db:
+        ManagementIdMapper = management_id_mapper_by_service[service]
+        return db.query(ManagementIdMapper).get(internal_management_event_id)
+
+
+def create_management_event(service: Service, management_event_internal_id: int, management_event_external_id: int):
+    with SessionLocal() as db:
+        ManagementIdMapper = management_id_mapper_by_service[service]
+        mapped_id_record = ManagementIdMapper(
+            internal_id=management_event_internal_id, external_id=management_event_external_id
+        )
+        db.add(mapped_id_record)
+        db.commit()
+        db.refresh(mapped_id_record)
+        return mapped_id_record
+
 
 
 Base.metadata.create_all(bind=engine)

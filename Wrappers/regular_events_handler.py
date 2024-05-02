@@ -6,7 +6,7 @@ from ProjectUtils.MessagingService.schemas import (
     to_json, from_json
 )
 from Wrappers.base_wrapper.wrapper import BaseWrapper
-from Wrappers.models import set_property_mapped_id
+from Wrappers.models import set_property_mapped_id, get_management_event, create_management_event
 
 
 def handle_recv(channel, method, properties, body, wrapper):
@@ -39,6 +39,19 @@ def handle_recv(channel, method, properties, body, wrapper):
             channel.basic_publish(exchange=EXCHANGE_NAME, routing_key=WRAPPER_TO_CALENDAR_ROUTING_KEY, body=to_json(
                 MessageFactory.create_import_reservations_response_message(wrapper.service_schema, reservations)
             ))
+        case MessageType.MANAGEMENT_EVENT_PROPAGATION:
+            update_parameters = {"closed_time_frames": [{
+                "begin_datetime": body["begin_datetime"],
+                "end_datetime": body["end_datetime"]
+            }]}
+            event_internal_id = body["event_internal_id"]
+            if (management_event := get_management_event(wrapper.service_schema, event_internal_id)
+            ) is not None:
+                update_parameters["id"] = management_event.external_id
+            external_id = wrapper.update_property(body["property_internal_id"], update_parameters)
+            print(external_id)
+            if external_id is not None:
+                create_management_event(wrapper.service_schema, event_internal_id, external_id)
 
     channel.basic_ack(delivery_tag)
 

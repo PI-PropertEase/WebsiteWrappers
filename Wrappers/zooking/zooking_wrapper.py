@@ -9,7 +9,7 @@ from ProjectUtils.MessagingService.queue_definitions import (
     WRAPPER_ZOOKING_ROUTING_KEY, WRAPPER_BROADCAST_ROUTING_KEY,
 )
 from ..models import Service, get_property_external_id, get_reservation_external_id, \
-    get_reservation_by_external_id, ReservationStatus, get_property_internal_id
+    get_reservation_by_external_id, ReservationStatus, get_property_internal_id, create_management_event
 
 
 class ZookingWrapper(BaseWrapper):
@@ -42,7 +42,24 @@ class ZookingWrapper(BaseWrapper):
         print("Updating property...")
         print("internal_id", prop_internal_id, "external_id", external_id)
         print("update_parameters", prop_update_parameters)
-        requests.put(url=url, json=ProperteaseToZooking.convert_property(prop_update_parameters))
+        response = requests.put(url=url, json=ProperteaseToZooking.convert_property(prop_update_parameters))
+        print("\n\ncontent", response.content)
+        if response.status_code == 200:
+            updated_property = response.json()
+            to_insert_closed_time_frames = prop_update_parameters.get("closed_time_frames")
+            if to_insert_closed_time_frames is None:
+                return
+            inserted_begin_datetime = to_insert_closed_time_frames[0].get("begin_datetime")
+            inserted_end_datetime = to_insert_closed_time_frames[0].get("end_datetime")
+            closed_time_frames = updated_property["closed_time_frames"]
+            for management_event_id, management_event in closed_time_frames.items():
+                print(management_event_id, management_event)
+                print(type(management_event["begin_datetime"]), type(inserted_begin_datetime))
+                if management_event["begin_datetime"] != inserted_begin_datetime or \
+                        management_event["end_datetime"] != inserted_end_datetime:
+                    continue
+                # external_id of event -> going to be mapped where we call this function
+                return management_event_id
 
     def delete_property(self, property):
         _id = property.get("id")
@@ -79,7 +96,8 @@ class ZookingWrapper(BaseWrapper):
             for r in zooking_reservations
             if get_property_internal_id(self.service_schema, r["property_id"]) is not None and
                ((reservation := get_reservation_by_external_id(self.service_schema, r["id"])) is None or
-               (r["reservation_status"] == "canceled" and reservation.reservation_status != ReservationStatus.CANCELED))
+                (r[
+                     "reservation_status"] == "canceled" and reservation.reservation_status != ReservationStatus.CANCELED))
         ]
         return converted_reservations
 
