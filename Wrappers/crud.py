@@ -105,3 +105,11 @@ def create_management_event(service: Service, management_event_internal_id: int,
         db.commit()
         db.refresh(mapped_id_record)
         return mapped_id_record
+
+
+def delete_management_event(service: Service, management_event_internal_id: int):
+    with SessionLocal() as db:
+        ManagementIdMapper = management_id_mapper_by_service[service]
+        event_to_delete = db.query(ManagementIdMapper).get(management_event_internal_id)
+        db.delete(event_to_delete)
+        db.commit()

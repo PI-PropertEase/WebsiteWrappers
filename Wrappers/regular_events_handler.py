@@ -47,6 +47,18 @@ def handle_recv(channel, method, properties, body, wrapper):
                 body["begin_datetime"],
                 body["end_datetime"],
             )
+        case MessageType.MANAGEMENT_EVENT_UPDATE:
+            wrapper.update_management_event(
+                body["property_internal_id"],
+                body["event_internal_id"],
+                body["begin_datetime"],
+                body["end_datetime"],
+            )
+        case MessageType.MANAGEMENT_EVENT_DELETE:
+            wrapper.delete_management_event(
+                body["property_internal_id"],
+                body["event_internal_id"],
+            )
 
     channel.basic_ack(delivery_tag)
 

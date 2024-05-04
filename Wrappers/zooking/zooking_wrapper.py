@@ -46,9 +46,8 @@ class ZookingWrapper(BaseWrapper):
         print("update_parameters", prop_update_parameters)
         response = requests.put(url=url, json=ProperteaseToZooking.convert_property(prop_update_parameters))
         print("\n\ncontent", response.content)
-        if response.status_code == 200:
-            return response.json()
-            # cenas e coisas coisas e cenas
+        print(response.json())
+        return response
 
     def delete_property(self, property):
         _id = property.get("id")
@@ -63,7 +62,9 @@ class ZookingWrapper(BaseWrapper):
             "end_datetime": end_datetime
         }]}
 
-        updated_property = self.update_property(property_internal_id, update_parameters)
+        response = self.update_property(property_internal_id, update_parameters)
+        # TODO implement check against different status codes later
+        updated_property = response.json()
         returned_closed_time_frames = updated_property["closed_time_frames"]
         for management_event_id, management_event in returned_closed_time_frames.items():
             if (management_event["begin_datetime"] == begin_datetime and
@@ -71,6 +72,28 @@ class ZookingWrapper(BaseWrapper):
                 # management_event_id is the external id
                 crud.create_management_event(self.service_schema, event_internal_id, management_event_id)
                 break
+
+    def update_management_event(self, property_internal_id: int, event_internal_id: int, begin_datetime: datetime,
+                                end_datetime: datetime):
+        update_parameters = {"closed_time_frames": [{
+            "id": crud.get_management_event(self.service_schema, event_internal_id).external_id,
+            "begin_datetime": begin_datetime,
+            "end_datetime": end_datetime
+        }]}
+
+        response = self.update_property(property_internal_id, update_parameters)
+        # TODO implement check against different status codes later
+        # don't need to update anything on the mappers
+
+    def delete_management_event(self, property_internal_id: int, event_internal_id: int):
+        update_parameters = {"closed_time_frames": [{
+            "id": crud.get_management_event(self.service_schema, event_internal_id).external_id,
+        }]}
+
+        response = self.update_property(property_internal_id, update_parameters)
+        # TODO implement check against different status codes later
+        if response.status_code == 200:
+            crud.delete_management_event(self.service_schema, event_internal_id)
 
     def import_properties(self, user):
         url = self.url + "properties?email=" + user.get("email")
