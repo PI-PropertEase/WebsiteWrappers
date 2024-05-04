@@ -8,8 +8,9 @@ from ProjectUtils.MessagingService.queue_definitions import (
     EXCHANGE_NAME,
     WRAPPER_EARTHSTAYIN_ROUTING_KEY, WRAPPER_BROADCAST_ROUTING_KEY,
 )
-from ..models import set_property_internal_id, Service, get_property_external_id, get_reservation_external_id, \
-    get_reservation_by_external_id, ReservationStatus, get_property_internal_id
+from ..models import Service, ReservationStatus
+from ..crud import get_property_external_id, get_property_internal_id, set_property_internal_id, \
+    get_reservation_external_id, get_reservation_by_external_id
 
 
 class EarthStayinWrapper(BaseWrapper):

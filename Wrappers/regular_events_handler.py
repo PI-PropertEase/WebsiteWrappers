@@ -1,3 +1,4 @@
+import Wrappers.crud
 from ProjectUtils.MessagingService.queue_definitions import channel, EXCHANGE_NAME, WRAPPER_TO_APP_ROUTING_KEY, \
     WRAPPER_TO_CALENDAR_ROUTING_KEY
 from ProjectUtils.MessagingService.schemas import (
@@ -6,7 +7,7 @@ from ProjectUtils.MessagingService.schemas import (
     to_json, from_json
 )
 from Wrappers.base_wrapper.wrapper import BaseWrapper
-from Wrappers.models import set_property_mapped_id, get_management_event, create_management_event
+from Wrappers.crud import set_property_mapped_id, get_management_event, create_management_event
 
 
 def handle_recv(channel, method, properties, body, wrapper):
@@ -39,19 +40,13 @@ def handle_recv(channel, method, properties, body, wrapper):
             channel.basic_publish(exchange=EXCHANGE_NAME, routing_key=WRAPPER_TO_CALENDAR_ROUTING_KEY, body=to_json(
                 MessageFactory.create_import_reservations_response_message(wrapper.service_schema, reservations)
             ))
-        case MessageType.MANAGEMENT_EVENT_PROPAGATION:
-            update_parameters = {"closed_time_frames": [{
-                "begin_datetime": body["begin_datetime"],
-                "end_datetime": body["end_datetime"]
-            }]}
-            event_internal_id = body["event_internal_id"]
-            if (management_event := get_management_event(wrapper.service_schema, event_internal_id)
-            ) is not None:
-                update_parameters["id"] = management_event.external_id
-            external_id = wrapper.update_property(body["property_internal_id"], update_parameters)
-            print(external_id)
-            if external_id is not None:
-                create_management_event(wrapper.service_schema, event_internal_id, external_id)
+        case MessageType.MANAGEMENT_EVENT_CREATE:
+            wrapper.create_management_event(
+                body["property_internal_id"],
+                body["event_internal_id"],
+                body["begin_datetime"],
+                body["end_datetime"],
+            )
 
     channel.basic_ack(delivery_tag)
 

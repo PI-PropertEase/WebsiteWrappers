@@ -1,8 +1,8 @@
 from ProjectUtils.MessagingService.schemas import Service
 from Wrappers.base_wrapper.utils import invert_map
 from Wrappers.earthstayin.converters.propertease_to_earthstayin import ProperteaseToEarthstayin
-from Wrappers.models import set_property_internal_id, \
-    get_property_internal_id, ReservationIdMapper, create_reservation, update_reservation, ReservationStatus
+from Wrappers.models import ReservationIdMapper, ReservationStatus
+from Wrappers.crud import get_property_internal_id, set_property_internal_id, create_reservation, update_reservation
 
 
 class EarthstayinToPropertease:

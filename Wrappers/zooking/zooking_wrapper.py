@@ -1,3 +1,5 @@
+from datetime import datetime
+
 import requests
 
 from Wrappers.zooking.converters.propertease_to_zooking import ProperteaseToZooking
@@ -8,8 +10,8 @@ from ProjectUtils.MessagingService.queue_definitions import (
     EXCHANGE_NAME,
     WRAPPER_ZOOKING_ROUTING_KEY, WRAPPER_BROADCAST_ROUTING_KEY,
 )
-from ..models import Service, get_property_external_id, get_reservation_external_id, \
-    get_reservation_by_external_id, ReservationStatus, get_property_internal_id, create_management_event
+from .. import crud
+from ..models import Service, ReservationStatus
 
 
 class ZookingWrapper(BaseWrapper):
@@ -37,7 +39,7 @@ class ZookingWrapper(BaseWrapper):
         requests.post(url=url, json=property)
 
     def update_property(self, prop_internal_id: int, prop_update_parameters: dict):
-        external_id = get_property_external_id(self.service_schema, prop_internal_id)
+        external_id = crud.get_property_external_id(self.service_schema, prop_internal_id)
         url = self.url + f"properties/{external_id}"
         print("Updating property...")
         print("internal_id", prop_internal_id, "external_id", external_id)
@@ -45,27 +47,30 @@ class ZookingWrapper(BaseWrapper):
         response = requests.put(url=url, json=ProperteaseToZooking.convert_property(prop_update_parameters))
         print("\n\ncontent", response.content)
         if response.status_code == 200:
-            updated_property = response.json()
-            to_insert_closed_time_frames = prop_update_parameters.get("closed_time_frames")
-            if to_insert_closed_time_frames is None:
-                return
-            inserted_begin_datetime = to_insert_closed_time_frames[0].get("begin_datetime")
-            inserted_end_datetime = to_insert_closed_time_frames[0].get("end_datetime")
-            closed_time_frames = updated_property["closed_time_frames"]
-            for management_event_id, management_event in closed_time_frames.items():
-                print(management_event_id, management_event)
-                print(type(management_event["begin_datetime"]), type(inserted_begin_datetime))
-                if management_event["begin_datetime"] != inserted_begin_datetime or \
-                        management_event["end_datetime"] != inserted_end_datetime:
-                    continue
-                # external_id of event -> going to be mapped where we call this function
-                return management_event_id
+            return response.json()
+            # cenas e coisas coisas e cenas
 
     def delete_property(self, property):
         _id = property.get("id")
         print("Deleting property...")
         url = self.url + f"properties/{_id}"
         requests.delete(url=url)
+
+    def create_management_event(self, property_internal_id: int, event_internal_id: int, begin_datetime: datetime,
+                                end_datetime: datetime):
+        update_parameters = {"closed_time_frames": [{
+            "begin_datetime": begin_datetime,
+            "end_datetime": end_datetime
+        }]}
+
+        updated_property = self.update_property(property_internal_id, update_parameters)
+        returned_closed_time_frames = updated_property["closed_time_frames"]
+        for management_event_id, management_event in returned_closed_time_frames.items():
+            if (management_event["begin_datetime"] == begin_datetime and
+                    management_event["end_datetime"] == end_datetime):
+                # management_event_id is the external id
+                crud.create_management_event(self.service_schema, event_internal_id, management_event_id)
+                break
 
     def import_properties(self, user):
         url = self.url + "properties?email=" + user.get("email")
@@ -94,21 +99,21 @@ class ZookingWrapper(BaseWrapper):
         converted_reservations = [
             ZookingToPropertease.convert_reservation(r, email, reservation)
             for r in zooking_reservations
-            if get_property_internal_id(self.service_schema, r["property_id"]) is not None and
-               ((reservation := get_reservation_by_external_id(self.service_schema, r["id"])) is None or
+            if crud.get_property_internal_id(self.service_schema, r["property_id"]) is not None and
+               ((reservation := crud.get_reservation_by_external_id(self.service_schema, r["id"])) is None or
                 (r[
                      "reservation_status"] == "canceled" and reservation.reservation_status != ReservationStatus.CANCELED))
         ]
         return converted_reservations
 
     def confirm_reservation(self, reservation_internal_id):
-        _id = get_reservation_external_id(self.service_schema, reservation_internal_id)
+        _id = crud.get_reservation_external_id(self.service_schema, reservation_internal_id)
         url = self.url + f"reservations/{_id}"
         print("Confirming reservation...", reservation_internal_id)
         requests.put(url=url, json={"reservation_status": "confirmed"})
 
     def delete_reservation(self, reservation_internal_id):
-        _id = get_reservation_external_id(self.service_schema, reservation_internal_id)
+        _id = crud.get_reservation_external_id(self.service_schema, reservation_internal_id)
         url = self.url + f"reservations/{_id}"
         print("Deleting reservation...", reservation_internal_id)
         requests.delete(url=url)
