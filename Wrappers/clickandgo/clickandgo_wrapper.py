@@ -52,8 +52,8 @@ class CNGWrapper(BaseWrapper):
         url = self.url + f"properties/{_id}"
         requests.delete(url=url)
 
-    def create_management_event(self, property_internal_id: int, event_internal_id: int, begin_datetime: datetime,
-                                end_datetime: datetime):
+    def create_management_event(self, property_internal_id: int, event_internal_id: int, begin_datetime: str,
+                                end_datetime: str):
         property_external_id = get_property_external_id(self.service_schema, property_internal_id)
         if property_external_id is None:
             print(f"Property with internal_id {property_internal_id} not found in IdMapper database.")
@@ -69,21 +69,20 @@ class CNGWrapper(BaseWrapper):
             returned_closed_time_frames = property_after_creating_event["closed_time_frames"]
             for management_event_id, management_event in returned_closed_time_frames.items():
                 if (management_event["begin_datetime"] == begin_datetime and
-                    management_event["end_datetime"] == end_datetime):
+                        management_event["end_datetime"] == end_datetime):
                     # management_event_id is the external id
                     create_management_event(self.service_schema, event_internal_id, management_event_id)
                     print(f"Successfully created management event with internal_id {event_internal_id}")
                     return
         print(f"Failed to create management event with internal_id {event_internal_id}")
 
-
-    def update_management_event(self, property_internal_id: int, event_internal_id: int, begin_datetime: datetime,
-                                end_datetime: datetime):
+    def update_management_event(self, property_internal_id: int, event_internal_id: int, begin_datetime: str,
+                                end_datetime: str):
         property_external_id = get_property_external_id(self.service_schema, property_internal_id)
         if property_external_id is None:
             print(f"Property with internal_id {property_internal_id} not found in IdMapper database.")
             return
-        
+
         management_event_external = get_management_event(self.service_schema, event_internal_id)
 
         if management_event_external is None:
@@ -102,26 +101,22 @@ class CNGWrapper(BaseWrapper):
             return
         print(f"Failed to update management event with internal_id {event_internal_id}")
 
-
-
     def delete_management_event(self, property_internal_id: int, event_internal_id: int):
         property_external_id = get_property_external_id(self.service_schema, property_internal_id)
         if property_external_id is None:
             print(f"Property with internal_id {property_internal_id} not found in IdMapper database.")
             return
-        
+
         management_event_external = get_management_event(self.service_schema, event_internal_id)
 
         if management_event_external is None:
             print(f"External counterpart of management event with internal_id {event_internal_id} not found.")
             return
-        
+
         url = self.url + f"properties/{property_external_id}/events/{management_event_external.external_id}"
         res = requests.delete(url=url)
-        if res.status_code == 204: # no content
+        if res.status_code == 204:  # no content
             print(f"Successfully deleted management event with internal_id {event_internal_id}")
-
-
 
     def import_properties(self, user):
         url = self.url + "properties?email=" + user.get("email")
@@ -152,7 +147,8 @@ class CNGWrapper(BaseWrapper):
             for r in clickandgo_reservations
             if get_property_internal_id(self.service_schema, r["property_id"]) is not None and
                ((reservation := get_reservation_by_external_id(self.service_schema, r["id"])) is None or
-               (r["reservation_status"] == "canceled" and reservation.reservation_status != ReservationStatus.CANCELED))
+                (r[
+                     "reservation_status"] == "canceled" and reservation.reservation_status != ReservationStatus.CANCELED))
         ]
         return converted_reservations
 
@@ -167,4 +163,3 @@ class CNGWrapper(BaseWrapper):
         url = self.url + f"reservations/{_id}"
         print("Deleting reservation...", reservation_internal_id)
         requests.delete(url=url)
-

@@ -24,11 +24,11 @@ class BaseWrapper(ABC):
         pass
 
     @abstractmethod
-    def create_management_event(self, property_internal_id: int, event_internal_id: int, begin_datetime: datetime, end_datetime: datetime):
+    def create_management_event(self, property_internal_id: int, event_internal_id: int, begin_datetime: str, end_datetime: str):
         pass
 
     @abstractmethod
-    def update_management_event(self, property_internal_id: int, event_internal_id: int, begin_datetime: datetime, end_datetime: datetime):
+    def update_management_event(self, property_internal_id: int, event_internal_id: int, begin_datetime: str, end_datetime: str):
         pass
 
     @abstractmethod
