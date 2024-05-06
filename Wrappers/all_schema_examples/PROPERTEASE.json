@@ -1,0 +1,57 @@
+{
+  "id": "661a7e5ab7bd0512178cf014",
+  "user_id": 1,
+  "title": "Coolest house ever",
+  "address": "Braga (obvio que nao)",
+  "description": "Dont enter",
+  "number_guests": 20,
+  "square_meters": 4000,
+  "bedrooms": {
+    "bedroom_1": {
+      "beds": [
+        {
+          "number_beds": 1,
+          "type": "single"
+        }
+      ]
+    }
+  },
+  "bathrooms": {
+    "bathroom_1": {
+      "fixtures": [
+        "bathtub",
+        "shower"
+      ]
+    }
+  },
+  "amenities": [
+    "free_wifi",
+    "pool",
+    "kitchen"
+  ],
+  "house_rules": {
+    "check_in": {
+      "begin_time": "10:59",
+      "end_time": "20:40"
+    },
+    "check_out": {
+      "begin_time": "10:59",
+      "end_time": "20:40"
+    },
+    "smoking": false,
+    "parties": true,
+    "rest_time": {
+      "begin_time": "23:00",
+      "end_time": "06:00"
+    },
+    "allow_pets": true
+  },
+  "additional_info": "So pessoas fixes",
+  "cancellation_policy": "😀",
+  "contacts": [
+    {
+      "name": "Alvaro Barbosa",
+      "phone_number": "+351969314716"
+    }
+  ]
+}
