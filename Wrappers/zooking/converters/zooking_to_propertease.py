@@ -1,8 +1,7 @@
 from ProjectUtils.MessagingService.schemas import Service
 from Wrappers.base_wrapper.utils import invert_map
-from Wrappers.models import set_property_internal_id, \
-    get_property_internal_id, create_reservation, \
-    ReservationIdMapper, ReservationStatus, update_reservation
+from Wrappers.models import ReservationIdMapper, ReservationStatus
+from Wrappers.crud import get_property_internal_id, set_property_internal_id, create_reservation, update_reservation
 from Wrappers.zooking.converters.propertease_to_zooking import ProperteaseToZooking
 
 

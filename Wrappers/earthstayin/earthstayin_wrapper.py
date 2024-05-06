@@ -1,3 +1,5 @@
+from datetime import datetime
+
 import requests
 
 from .converters.earthstayin_to_propertease import EarthstayinToPropertease
@@ -8,8 +10,8 @@ from ProjectUtils.MessagingService.queue_definitions import (
     EXCHANGE_NAME,
     WRAPPER_EARTHSTAYIN_ROUTING_KEY, WRAPPER_BROADCAST_ROUTING_KEY,
 )
-from ..models import set_property_internal_id, Service, get_property_external_id, get_reservation_external_id, \
-    get_reservation_by_external_id, ReservationStatus, get_property_internal_id
+from ..models import Service, ReservationStatus
+from .. import crud
 
 
 class EarthStayinWrapper(BaseWrapper):
@@ -37,7 +39,7 @@ class EarthStayinWrapper(BaseWrapper):
         requests.post(url=url, json=property)
 
     def update_property(self, prop_internal_id: int, prop_update_parameters: dict):
-        external_id = get_property_external_id(self.service_schema, prop_internal_id)
+        external_id = crud.get_property_external_id(self.service_schema, prop_internal_id)
         url = self.url + f"properties/{external_id}"
         print("Updating property...")
         print("internal_id", prop_internal_id, "external_id", external_id)
@@ -49,6 +51,54 @@ class EarthStayinWrapper(BaseWrapper):
         print("Deleting property...")
         url = self.url + f"properties/{_id}"
         requests.delete(url=url)
+
+    def create_management_event(self, property_internal_id: int, event_internal_id: int, begin_datetime: str,
+                                end_datetime: str):
+        url = self.url + "properties/closedtimeframes"
+        print("Creating management event...")
+        response = requests.post(url=url, json={
+            "property_id": crud.get_property_external_id(self.service_schema, property_internal_id),
+            "begin_datetime": begin_datetime,
+            "end_datetime": end_datetime
+        })
+        if response.status_code == 200:
+            print("Success creating management event")
+            crud.create_management_event(self.service_schema, event_internal_id, response.json()["id"])
+        else:
+            print("Failed creating management event", response.json())
+
+    def update_management_event(self, property_internal_id: int, event_internal_id: int, begin_datetime: str,
+                                end_datetime: str):
+        event = crud.get_management_event(self.service_schema, event_internal_id)
+        if event is None:
+            print(f"External counterpart of management event with internal_id {event_internal_id} not found.")
+            return
+        event_external_id = event.external_id
+        url = self.url + f"properties/closedtimeframes/{event_external_id}"
+        print("Updating management event...")
+        response = requests.put(url=url, json={
+            "begin_datetime": begin_datetime,
+            "end_datetime": end_datetime
+        })
+        if response.status_code == 200:
+            print("Success updating management event")
+        else:
+            print("Failed updating management event", response.json())
+
+    def delete_management_event(self, property_internal_id: int, event_internal_id: int):
+        event = crud.get_management_event(self.service_schema, event_internal_id)
+        if event is None:
+            print(f"External counterpart of management event with internal_id {event_internal_id} not found.")
+            return
+        event_external_id = event.external_id
+        url = self.url + f"properties/closedtimeframes/{event_external_id}"
+        print("Deleting management event...")
+        response = requests.delete(url=url)
+        if response.status_code == 204:
+            print("Success deleting management event")
+            crud.delete_management_event(self.service_schema, event_internal_id)
+        else:
+            print("Failed deleting management event", response.json())
 
     def import_properties(self, user):
         url = self.url + "properties?email=" + user.get("email")
@@ -77,20 +127,21 @@ class EarthStayinWrapper(BaseWrapper):
         converted_reservations = [
             EarthstayinToPropertease.convert_reservation(r, email, reservation)
             for r in earthsayin_reservations
-            if get_property_internal_id(self.service_schema, r["property_id"]) is not None and
-               ((reservation := get_reservation_by_external_id(self.service_schema, r["id"])) is None or
-               (r["reservation_status"] == "canceled" and reservation.reservation_status != ReservationStatus.CANCELED))
+            if crud.get_property_internal_id(self.service_schema, r["property_id"]) is not None and
+               ((reservation := crud.get_reservation_by_external_id(self.service_schema, r["id"])) is None or
+                (r[
+                     "reservation_status"] == "canceled" and reservation.reservation_status != ReservationStatus.CANCELED))
         ]
         return converted_reservations
 
     def confirm_reservation(self, reservation_internal_id):
-        _id = get_reservation_external_id(self.service_schema, reservation_internal_id)
+        _id = crud.get_reservation_external_id(self.service_schema, reservation_internal_id)
         url = self.url + f"reservations/{_id}"
         print("Confirming reservation...", reservation_internal_id)
         requests.put(url=url, json={"reservation_status": "confirmed"})
 
     def delete_reservation(self, reservation_internal_id):
-        _id = get_reservation_external_id(self.service_schema, reservation_internal_id)
+        _id = crud.get_reservation_external_id(self.service_schema, reservation_internal_id)
         url = self.url + f"reservations/{_id}"
         print("Deleting reservation...", reservation_internal_id)
         requests.delete(url=url)

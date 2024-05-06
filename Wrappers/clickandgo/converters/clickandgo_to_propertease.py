@@ -1,8 +1,8 @@
 from ProjectUtils.MessagingService.schemas import Service
 from Wrappers.base_wrapper.utils import invert_map
 from Wrappers.clickandgo.converters.propertease_to_clickandgo import ProperteaseToClickandgo
-from Wrappers.models import set_property_internal_id, \
-    get_property_internal_id, ReservationIdMapper, create_reservation, ReservationStatus, update_reservation
+from Wrappers.models import ReservationIdMapper, ReservationStatus
+from Wrappers.crud import get_property_internal_id, set_property_internal_id, create_reservation, update_reservation
 
 
 class ClickandgoToPropertease:

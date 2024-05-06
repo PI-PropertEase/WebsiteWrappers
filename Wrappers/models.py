@@ -46,11 +46,17 @@ class ReservationIdMapper(IdMapper):
     reservation_status = Column(Enum(ReservationStatus))
 
 
+class ManagementIdMapper(IdMapper): __abstract__ = True
+
+
 # Concrete Classes - SequenceId
 class SequenceIdProperties(SequenceId): __tablename__ = "sequence_id_properties"
 
 
 class SequenceIdReservations(SequenceId): __tablename__ = "sequence_id_reservations"
+
+
+class SequenceIdManagement(SequenceId): __tablename__ = "sequence_id_management"
 
 
 # Concrete Classes - PropertyIdMappers
@@ -73,6 +79,16 @@ class ReservationIdMapperClickAndGo(ReservationIdMapper): __tablename__ = "reser
 class ReservationIdMapperEarthStayin(ReservationIdMapper): __tablename__ = "reservation_id_mapper_earthstayin"
 
 
+# Concrete Classes - ManagementEventIdMappers
+class ManagementIdMapperZooking(ManagementIdMapper): __tablename__ = "management_id_mapper_zooking"
+
+
+class ManagementIdMapperClickAndGo(ManagementIdMapper): __tablename__ = "management_id_mapper_clickandgo"
+
+
+class ManagementIdMapperEarthStayin(ManagementIdMapper): __tablename__ = "management_id_mapper_earthstayin"
+
+
 # Mappers (service -> corresponding Property or Reservation IdMapper)
 property_id_mapper_by_service = {
     Service.ZOOKING: PropertyIdMapperZooking,
@@ -84,6 +100,12 @@ reservation_id_mapper_by_service = {
     Service.ZOOKING: ReservationIdMapperZooking,
     Service.CLICKANDGO: ReservationIdMapperClickAndGo,
     Service.EARTHSTAYIN: ReservationIdMapperEarthStayin
+}
+
+management_id_mapper_by_service = {
+    Service.ZOOKING: ManagementIdMapperZooking,
+    Service.CLICKANDGO: ManagementIdMapperClickAndGo,
+    Service.EARTHSTAYIN: ManagementIdMapperEarthStayin
 }
 
 
@@ -124,92 +146,5 @@ def increment_reservation_sequence_id_before_insert(mapper, connection, target):
 
 for ReservationIdMapper in reservation_id_mapper_by_service.values():
     listen(ReservationIdMapper, "before_insert", increment_reservation_sequence_id_before_insert)
-
-
-# Helper functions
-def get_property_external_id(service: Service, internal_property_id: int) -> int:
-    with SessionLocal() as db:
-        PropertyIdMapper = property_id_mapper_by_service[service]
-        property_record = db.query(PropertyIdMapper).get(internal_property_id)
-        return property_record.external_id if property_record is not None else property_record
-
-
-def get_property_internal_id(service: Service, external_property_id: int) -> int:
-    with SessionLocal() as db:
-        PropertyIdMapper = property_id_mapper_by_service[service]
-        property_record = db.query(PropertyIdMapper).filter(
-            PropertyIdMapper.external_id == external_property_id).first()
-        print("external_property_id", external_property_id)
-        print("property_record", property_record)
-        print(property_record.internal_id if property_record is not None else property_record)
-        return property_record.internal_id if property_record is not None else property_record
-
-
-def set_property_internal_id(service: Service, external_property_id) -> int:
-    with SessionLocal() as db:
-        PropertyIdMapper = property_id_mapper_by_service[service]
-        mapped_id = PropertyIdMapper(external_id=external_property_id)
-        print("setting property internal id", service.value, external_property_id, mapped_id.internal_id)
-        db.add(mapped_id)
-        db.commit()
-        db.refresh(mapped_id)
-        return mapped_id.internal_id
-
-
-def set_property_mapped_id(service: Service, old_internal_id, new_internal_id):
-    with SessionLocal() as db:
-        IdMapperService = property_id_mapper_by_service[service]
-        property_with_same_internal_id = db.query(IdMapperService).get(new_internal_id)
-        property_to_update_or_delete = db.query(IdMapperService).get(old_internal_id)
-        if property_with_same_internal_id is not None:
-            # delete
-            print(f"\nold_internal_id: {old_internal_id}, new_internal_id: {new_internal_id}")
-            print("property_with_same_internal_id: ", property_with_same_internal_id.__dict__)
-            print("property_to_delete", property_to_update_or_delete.__dict__)
-            db.delete(property_to_update_or_delete)
-        else:
-            # update
-            print(f"\nold_internal_id: {old_internal_id}, new_internal_id: {new_internal_id}")
-            print("property_to_update", property_to_update_or_delete.__dict__)
-            property_to_update_or_delete.internal_id = new_internal_id
-        db.commit()
-
-
-def get_reservation_external_id(service: Service, internal_reservation_id: int) -> int:
-    with SessionLocal() as db:
-        ReservationIdMapper = reservation_id_mapper_by_service[service]
-        reservation = db.query(ReservationIdMapper).get(internal_reservation_id)
-        return reservation.external_id if reservation is not None else reservation
-
-
-def get_reservation_by_external_id(service: Service, external_reservation_id: int) -> ReservationIdMapper:
-    with SessionLocal() as db:
-        ReservationIdMapper = reservation_id_mapper_by_service[service]
-        print("external_reservation_id", external_reservation_id)
-        return db.query(ReservationIdMapper).filter(
-            ReservationIdMapper.external_id == external_reservation_id).first()
-
-
-def create_reservation(service: Service, external_reservation_id: int, reservation_status: str):
-    with SessionLocal() as db:
-        ReservationIdMapper = reservation_id_mapper_by_service[service]
-        mapped_id = ReservationIdMapper(external_id=external_reservation_id, reservation_status=ReservationStatus(reservation_status))
-        db.add(mapped_id)
-        db.commit()
-        db.refresh(mapped_id)
-        return mapped_id
-
-
-def update_reservation(service: Service, reservation_to_update_internal_id: int, reservation_status: str):
-    with SessionLocal() as db:
-        print(reservation_status)
-        print(ReservationStatus(reservation_status))
-        ReservationIdMapper = reservation_id_mapper_by_service[service]
-        reservation_to_update = db.query(ReservationIdMapper).get(reservation_to_update_internal_id)
-        reservation_to_update.reservation_status = ReservationStatus(reservation_status)
-        db.commit()
-        db.refresh(reservation_to_update)
-        return reservation_to_update
-
 
 Base.metadata.create_all(bind=engine)

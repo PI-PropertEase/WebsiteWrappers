@@ -1,5 +1,5 @@
 from ProjectUtils.MessagingService.schemas import Service
-from Wrappers.models import get_property_external_id
+from Wrappers.crud import get_property_external_id
 
 
 class ProperteaseToClickandgo:

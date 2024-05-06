@@ -1,4 +1,6 @@
 from abc import ABC, abstractmethod
+from datetime import datetime
+
 from ProjectUtils.MessagingService.schemas import Service as ServiceSchema
 
 
@@ -19,6 +21,18 @@ class BaseWrapper(ABC):
 
     @abstractmethod
     def delete_property(self, property):
+        pass
+
+    @abstractmethod
+    def create_management_event(self, property_internal_id: int, event_internal_id: int, begin_datetime: str, end_datetime: str):
+        pass
+
+    @abstractmethod
+    def update_management_event(self, property_internal_id: int, event_internal_id: int, begin_datetime: str, end_datetime: str):
+        pass
+
+    @abstractmethod
+    def delete_management_event(self, property_internal_id: int, event_internal_id: int):
         pass
 
     @abstractmethod
