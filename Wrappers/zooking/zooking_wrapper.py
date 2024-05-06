@@ -45,8 +45,6 @@ class ZookingWrapper(BaseWrapper):
         print("internal_id", prop_internal_id, "external_id", external_id)
         print("update_parameters", prop_update_parameters)
         response = requests.put(url=url, json=ProperteaseToZooking.convert_property(prop_update_parameters))
-        print("\n\ncontent", response.content)
-        print(response.json())
         return response
 
     def delete_property(self, property):
@@ -57,12 +55,18 @@ class ZookingWrapper(BaseWrapper):
 
     def create_management_event(self, property_internal_id: int, event_internal_id: int, begin_datetime: str,
                                 end_datetime: str):
+
+        external_id = crud.get_property_external_id(self.service_schema, property_internal_id)
+        if external_id is None:
+            print(f"Property with internal_id {property_internal_id} not found in IdMapper database.")
+            return
+
+        url = self.url + f"properties/{external_id}"
         update_parameters = {"closed_time_frames": [{
             "begin_datetime": begin_datetime,
             "end_datetime": end_datetime
         }]}
-
-        response = self.update_property(property_internal_id, update_parameters)
+        response = requests.put(url=url, json=ProperteaseToZooking.convert_property(update_parameters))
         # TODO implement check against different status codes later
         if response.status_code == 200:
             print("Success creating management event")
@@ -79,13 +83,19 @@ class ZookingWrapper(BaseWrapper):
 
     def update_management_event(self, property_internal_id: int, event_internal_id: int, begin_datetime: str,
                                 end_datetime: str):
+
+        external_id = crud.get_property_external_id(self.service_schema, property_internal_id)
+        if external_id is None:
+            print(f"Property with internal_id {property_internal_id} not found in IdMapper database.")
+            return
+
+        url = self.url + f"properties/{external_id}"
         update_parameters = {"closed_time_frames": [{
             "id": crud.get_management_event(self.service_schema, event_internal_id).external_id,
             "begin_datetime": begin_datetime,
             "end_datetime": end_datetime
         }]}
-
-        response = self.update_property(property_internal_id, update_parameters)
+        response = requests.put(url=url, json=ProperteaseToZooking.convert_property(update_parameters))
         if response.status_code == 200:
             print("Success updating management event")
         else:
@@ -94,11 +104,16 @@ class ZookingWrapper(BaseWrapper):
         # don't need to update anything on the mappers
 
     def delete_management_event(self, property_internal_id: int, event_internal_id: int):
+        external_id = crud.get_property_external_id(self.service_schema, property_internal_id)
+        if external_id is None:
+            print(f"Property with internal_id {property_internal_id} not found in IdMapper database.")
+            return
+
+        url = self.url + f"properties/{external_id}"
         update_parameters = {"closed_time_frames": [{
             "id": crud.get_management_event(self.service_schema, event_internal_id).external_id,
         }]}
-
-        response = self.update_property(property_internal_id, update_parameters)
+        response = requests.put(url=url, json=ProperteaseToZooking.convert_property(update_parameters))
         # TODO implement check against different status codes later
         if response.status_code == 200:
             print("Success deleting management event")
