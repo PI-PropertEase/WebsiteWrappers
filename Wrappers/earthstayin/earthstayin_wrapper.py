@@ -17,7 +17,7 @@ from .. import crud
 class EarthStayinWrapper(BaseWrapper):
     def __init__(self, queue: str) -> None:
         super().__init__(
-            url="http://host.docker.internal:8001/",
+            url="http://localhost:8001/",
             queue=queue,
             service_schema=Service.EARTHSTAYIN,
         )
@@ -145,3 +145,15 @@ class EarthStayinWrapper(BaseWrapper):
         url = self.url + f"reservations/{_id}"
         print("Deleting reservation...", reservation_internal_id)
         requests.delete(url=url)
+
+    def import_new_properties(self, user):
+        email = user.get("email")
+        url = f"{self.url}properties?email={email}"
+        earthstayin_properties = requests.get(url=url).json()
+        # import properties that don't exist -> not mapped in our database
+        converted_properties = [
+            EarthstayinToPropertease.convert_property(prop)
+            for prop in earthstayin_properties
+            if (crud.get_property_internal_id(self.service_schema, prop.get("id")) is None)
+        ]
+        return converted_properties

@@ -17,7 +17,7 @@ from ..crud import get_management_event, get_property_external_id, get_property_
 class CNGWrapper(BaseWrapper):
     def __init__(self, queue: str) -> None:
         super().__init__(
-            url="http://host.docker.internal:8002/",
+            url="http://localhost:8002/",
             queue=queue,
             service_schema=Service.CLICKANDGO,
         )
@@ -163,3 +163,15 @@ class CNGWrapper(BaseWrapper):
         url = self.url + f"reservations/{_id}"
         print("Deleting reservation...", reservation_internal_id)
         requests.delete(url=url)
+
+    def import_new_properties(self, user):
+        email = user.get("email")
+        url = f"{self.url}properties?email={email}"
+        clickandgo_properties = requests.get(url=url).json()
+        # import properties that don't exist -> not mapped in our database
+        converted_properties = [
+            ClickandgoToPropertease.convert_property(prop)
+            for prop in clickandgo_properties
+            if (get_property_internal_id(self.service_schema, prop.get("id")) is None)
+        ]
+        return converted_properties
