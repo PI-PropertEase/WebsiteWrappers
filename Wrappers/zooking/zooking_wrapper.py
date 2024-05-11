@@ -166,3 +166,16 @@ class ZookingWrapper(BaseWrapper):
         url = self.url + f"reservations/{_id}"
         print("Deleting reservation...", reservation_internal_id)
         requests.delete(url=url)
+
+    def import_new_properties(self, user):
+        email = user.get("email")
+        url = f"{self.url}properties?email={email}"
+        zooking_properties = requests.get(url=url).json()
+        # import properties that don't exist -> not mapped in our database
+        converted_properties = [
+            ZookingToPropertease.convert_property(prop)
+            for prop in zooking_properties
+            if (crud.get_property_internal_id(self.service_schema, prop.get("id")) is None)
+        ]
+        return converted_properties
+
