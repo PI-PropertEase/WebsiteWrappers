@@ -116,6 +116,9 @@ class CNGWrapper(BaseWrapper):
         res = requests.delete(url=url)
         if res.status_code == 204:  # no content
             print(f"Successfully deleted management event with internal_id {event_internal_id}")
+            crud.delete_management_event(self.service_schema, event_internal_id)
+        else:
+            print("Failed deleting management event", res.json())
 
     def import_properties(self, user):
         url = self.url + "properties?email=" + user.get("email")

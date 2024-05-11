@@ -180,12 +180,12 @@ class ZookingWrapper(BaseWrapper):
             print("Cancelling existing reservation...", reservation_internal_id)
             response = requests.put(url=url, json={"reservation_status": "canceled"})
             if response.status_code == 200:
-                crud.update_reservation(self.service_schema, reservation_internal_id, response.json()["reservation_status"])
+                crud.update_reservation(self.service_schema, reservation_internal_id,
+                                        response.json()["reservation_status"])
             else:
                 print("Error cancelling reservation")
         else:
             print("Error reservation to cancel doesn't exist")
-
 
     def cancel_reservation(self, reservation_internal_id: int, property_internal_id: int):
         _id = crud.get_reservation_external_id(self.service_schema, reservation_internal_id)
@@ -195,10 +195,10 @@ class ZookingWrapper(BaseWrapper):
             print("Cancelling existing reservation...", reservation_internal_id)
             response = requests.put(url=url, json={"reservation_status": "canceled"})
             if response.status_code == 200:
-                crud.update_reservation(self.service_schema, reservation_internal_id, response.json()["reservation_status"])
+                crud.update_reservation(self.service_schema, reservation_internal_id,
+                                        response.json()["reservation_status"])
             else:
                 print("Error cancelling reservation")
         else:
             print("Deleting event corresponding to that reservation", reservation_internal_id)
             self.delete_management_event(property_internal_id, reservation_internal_id)
-
