@@ -17,7 +17,7 @@ from .. import crud
 class EarthStayinWrapper(BaseWrapper):
     def __init__(self, queue: str) -> None:
         super().__init__(
-            url="http://host.docker.internal:8001/",
+            url="http://localhost:8001/",
             queue=queue,
             service_schema=Service.EARTHSTAYIN,
         )
@@ -56,6 +56,11 @@ class EarthStayinWrapper(BaseWrapper):
                                 end_datetime: str):
         url = self.url + "properties/closedtimeframes"
         print("Creating management event...")
+        print("THIS IS THE BODY", {
+            "property_id": crud.get_property_external_id(self.service_schema, property_internal_id),
+            "begin_datetime": begin_datetime,
+            "end_datetime": end_datetime
+        })
         response = requests.post(url=url, json={
             "property_id": crud.get_property_external_id(self.service_schema, property_internal_id),
             "begin_datetime": begin_datetime,
@@ -134,14 +139,27 @@ class EarthStayinWrapper(BaseWrapper):
         ]
         return converted_reservations
 
-    def confirm_reservation(self, reservation_internal_id):
+    def confirm_reservation(self, reservation_internal_id: int, property_internal_id: int, begin_datetime: str,
+                            end_datetime: str):
         _id = crud.get_reservation_external_id(self.service_schema, reservation_internal_id)
-        url = self.url + f"reservations/{_id}"
-        print("Confirming reservation...", reservation_internal_id)
-        requests.put(url=url, json={"reservation_status": "confirmed"})
+        if _id is not None:
+            url = self.url + f"reservations/{_id}"
+            print("Confirming reservation...", reservation_internal_id)
+            response = requests.put(url=url, json={"reservation_status": "confirmed"})
+            if response.status_code == 200:
+                crud.update_reservation(self.service_schema, reservation_internal_id,
+                                        response.json()["reservation_status"])
+            else:
+                print("Error confirming reservation")
+        else:
+            self.create_management_event(property_internal_id, reservation_internal_id, begin_datetime, end_datetime)
 
-    def delete_reservation(self, reservation_internal_id):
+    def cancel_reservation(self, reservation_internal_id):
         _id = crud.get_reservation_external_id(self.service_schema, reservation_internal_id)
         url = self.url + f"reservations/{_id}"
-        print("Deleting reservation...", reservation_internal_id)
-        requests.delete(url=url)
+        print("Cancelling reservation...", reservation_internal_id)
+        response = requests.put(url=url, json={"reservation_status": "canceled"})
+        if response.status_code == 200:
+            crud.update_reservation(self.service_schema, reservation_internal_id, response.json()["reservation_status"])
+        else:
+            print("Error cancelling reservation")
