@@ -17,7 +17,11 @@ def handle_recv(channel, method, properties, body, wrapper:BaseWrapper):
     match message.message_type:
         case MessageType.RESERVATION_IMPORT_OVERLAP:
             print("RESERVATION_IMPORT_OVERLAP: ", body)
-            wrapper.cancel_reservation(body["old_internal_id"])
+            # wrapper.cancel(body["old_reservation_internal_id"], body["property_internal_id"])
+            wrapper.cancel_overlapping_reservation(body["old_reservation_internal_id"])
+        case MessageType.RESERVATION_CANCEL_MESSAGE:
+            print("RESERVATION_CANCEL_MESSAGE: ", body)
+            wrapper.cancel_reservation(body["old_reservation_internal_id"], body["property_internal_id"])
         case MessageType.RESERVATION_IMPORT_REQUEST:
             print("RESERVATION_IMPORT_REQUEST: ", body)
             for user_email, user_service in body["users_with_services"].items():
