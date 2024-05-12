@@ -37,7 +37,7 @@ class ClickandgoToPropertease:
         propertease_property["additional_info"] = clickandgo_property.get("additional_info")
         propertease_property["cancellation_policy"] = ""  # not supported in clickandgo
         propertease_property["contacts"] = ClickandgoToPropertease.convert_contacts(
-            clickandgo_property.get("house_manager")
+            clickandgo_property.get("house_managers")
         )
 
         return propertease_property
@@ -104,13 +104,14 @@ class ClickandgoToPropertease:
         }
 
     @staticmethod
-    def convert_contacts(clickandgo_housemanager):
-        return [
-            {
-                "name": clickandgo_housemanager.get("name"),
-                "phone_number": clickandgo_housemanager.get("phone_number"),
-            }
-        ]
+    def convert_contacts(clickandgo_housemanagers):
+        propertease_contacts = []
+        for house_manager in clickandgo_housemanagers:
+            propertease_contacts.append({
+                "name": house_manager.get("name"),
+                "phone_number": house_manager.get("phone_number")
+            })
+        return propertease_contacts
 
     @staticmethod
     def convert_reservation(clickandgo_reservation, owner_email: str, reservation: ReservationIdMapper = None):
