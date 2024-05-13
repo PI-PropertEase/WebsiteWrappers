@@ -54,15 +54,21 @@ class EarthStayinWrapper(BaseWrapper):
 
     def create_management_event(self, property_internal_id: int, event_internal_id: int, begin_datetime: str,
                                 end_datetime: str):
+
+        external_id = crud.get_property_external_id(self.service_schema, property_internal_id)
+        if external_id is None:
+            print(f"Property with internal_id {property_internal_id} not found in IdMapper database.")
+            return
+
         url = self.url + "properties/closedtimeframes"
         print("Creating management event...")
         print("THIS IS THE BODY", {
-            "property_id": crud.get_property_external_id(self.service_schema, property_internal_id),
+            "property_id": external_id,
             "begin_datetime": begin_datetime,
             "end_datetime": end_datetime
         })
         response = requests.post(url=url, json={
-            "property_id": crud.get_property_external_id(self.service_schema, property_internal_id),
+            "property_id": external_id,
             "begin_datetime": begin_datetime,
             "end_datetime": end_datetime
         })
@@ -74,6 +80,10 @@ class EarthStayinWrapper(BaseWrapper):
 
     def update_management_event(self, property_internal_id: int, event_internal_id: int, begin_datetime: str,
                                 end_datetime: str):
+        if crud.get_property_external_id(self.service_schema, property_internal_id) is None:
+            print(f"Property with internal_id {property_internal_id} not found in IdMapper database.")
+            return
+
         event = crud.get_management_event(self.service_schema, event_internal_id)
         if event is None:
             print(f"External counterpart of management event with internal_id {event_internal_id} not found.")
@@ -91,6 +101,10 @@ class EarthStayinWrapper(BaseWrapper):
             print("Failed updating management event", response.json())
 
     def delete_management_event(self, property_internal_id: int, event_internal_id: int):
+        if crud.get_property_external_id(self.service_schema, property_internal_id) is None:
+            print(f"Property with internal_id {property_internal_id} not found in IdMapper database.")
+            return
+
         event = crud.get_management_event(self.service_schema, event_internal_id)
         if event is None:
             print(f"External counterpart of management event with internal_id {event_internal_id} not found.")
