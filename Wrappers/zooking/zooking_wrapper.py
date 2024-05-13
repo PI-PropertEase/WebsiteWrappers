@@ -119,12 +119,16 @@ class ZookingWrapper(BaseWrapper):
             return
 
         url = self.url + f"properties/{external_id}"
-        event_external_id = crud.get_management_event(self.service_schema, event_internal_id).external_id
+        event = crud.get_management_event(self.service_schema, event_internal_id)
+        if event is None:
+            LOGGER.error("External counterpart of management event with internal_id '%s' not found.", event_internal_id)
+            return
+
         update_parameters = {"closed_time_frames": [{
-            "id": event_external_id,
+            "id": event.external_id,
         }]}
         LOGGER.info("PUT request call (to delete management event for property_external_id '%s') in Zooking API at '%s'... Deleting event_external_id '%s'", 
-                    external_id, url, event_external_id)
+                    external_id, url, event.external_id)
         response = requests.put(url=url, json=ProperteaseToZooking.convert_property(update_parameters))
         # TODO implement check against different status codes later
         if response.status_code == 200:
@@ -193,9 +197,9 @@ class ZookingWrapper(BaseWrapper):
         _id = crud.get_reservation_external_id(self.service_schema, reservation_internal_id)
         if _id is not None:
             # if it's receiving this message, reservation was already made in this service
-            LOGGER.info("Cancelling ClickAndGo OVERLAPPING reservation with: internal_id - '%s'; external_id '%s'", reservation_internal_id, _id)
+            LOGGER.info("Cancelling Zooking OVERLAPPING reservation with: internal_id - '%s'; external_id '%s'", reservation_internal_id, _id)
             url = self.url + f"reservations/{_id}"
-            LOGGER.info("PUT request call in ClickAndGo API at '%s'...", url)
+            LOGGER.info("PUT request call in Zooking API at '%s'...", url)
             response = requests.put(url=url, json={"reservation_status": "canceled"})
             if response.status_code == 200:
                 crud.update_reservation(self.service_schema, reservation_internal_id,
@@ -209,9 +213,9 @@ class ZookingWrapper(BaseWrapper):
         _id = crud.get_reservation_external_id(self.service_schema, reservation_internal_id)
         if _id is not None:
             # if reservation made on this service
-            LOGGER.info("Cancelling ClickAndGo reservation with: internal_id - '%s'; external_id '%s'", reservation_internal_id, _id)
+            LOGGER.info("Cancelling Zooking reservation with: internal_id - '%s'; external_id '%s'", reservation_internal_id, _id)
             url = self.url + f"reservations/{_id}"
-            LOGGER.info("PUT request call in ClickAndGo API at '%s'...", url)
+            LOGGER.info("PUT request call in Zooking API at '%s'...", url)
             response = requests.put(url=url, json={"reservation_status": "canceled"})
             if response.status_code == 200:
                 crud.update_reservation(self.service_schema, reservation_internal_id,
@@ -219,7 +223,7 @@ class ZookingWrapper(BaseWrapper):
             else:
                 LOGGER.error("Error cancelling reservation. Response: '%s'", response.content)
         else:
-            LOGGER.info("Deleting ClickAndGo management event in property '%s', corresponding to reservation with internal_id '%s'", property_internal_id, reservation_internal_id)
+            LOGGER.info("Deleting Zooking management event in property '%s', corresponding to reservation with internal_id '%s'", property_internal_id, reservation_internal_id)
             self.delete_management_event(property_internal_id, reservation_internal_id)
 
             
