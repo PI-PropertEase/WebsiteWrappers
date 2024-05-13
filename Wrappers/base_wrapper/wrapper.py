@@ -54,3 +54,7 @@ class BaseWrapper(ABC):
     @abstractmethod
     def delete_reservation(self, reservation_internal_id):
         pass
+
+    @abstractmethod
+    def import_new_properties(self, user):
+        pass

@@ -32,6 +32,18 @@ def handle_recv(channel, method, properties, body, wrapper:BaseWrapper):
         case MessageType.RESERVATION_IMPORT_CONFIRM:
             print("RESERVATION_IMPORT_CONFIRM: ", body)
             wrapper.confirm_reservation(body["internal_id"])
+        case MessageType.SCHEDULED_PROPERTY_IMPORT:
+            print("Scheduled import properties...")
+            for user_email, user_service in body["users_with_services"].items():
+                if wrapper.service_schema.value in user_service:
+                    properties = wrapper.import_new_properties({"email": user_email})
+                    if len(properties) > 0:
+                        print("Detected new properties --> sending it to PropertyService")
+                        channel.basic_publish(exchange=EXCHANGE_NAME, routing_key=WRAPPER_TO_APP_ROUTING_KEY,
+                                            body=to_json(
+                                                MessageFactory.create_import_properties_response_message(
+                                                    wrapper.service_schema, properties)
+                                            ))
 
     channel.basic_ack(delivery_tag)
 
