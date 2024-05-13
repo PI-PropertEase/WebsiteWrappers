@@ -1,5 +1,10 @@
+import logging
+
 from ProjectUtils.MessagingService.schemas import Service
 from Wrappers.crud import get_property_external_id
+
+LOGGER = logging.getLogger(__name__)
+LOGGER.setLevel(logging.INFO)
 
 
 class ProperteaseToZooking:
@@ -19,6 +24,7 @@ class ProperteaseToZooking:
 
     @staticmethod
     def convert_property(propertease_property):
+        LOGGER.debug("INPUT CONVERTING PROPERTY - PropertEase property: %s", propertease_property)
         zooking_property = dict()
         property_id = zooking_property.get("_id")
         zooking_property["id"] = None if property_id is None else get_property_external_id(ProperteaseToZooking.service,
@@ -48,8 +54,7 @@ class ProperteaseToZooking:
         # - house rules
         # - cancellation_policy
         # - contacts
-        print(f"\npropertease_property {propertease_property}\n")
-        print(f"zooking_property {zooking_property}\n")
+        LOGGER.debug("OUTPUT CONVERTING PROPERTY - Zooking property: %s", zooking_property)
         return zooking_property
 
     @staticmethod

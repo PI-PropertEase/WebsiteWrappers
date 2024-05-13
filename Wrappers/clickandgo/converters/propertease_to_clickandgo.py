@@ -1,5 +1,10 @@
+import logging
+
 from ProjectUtils.MessagingService.schemas import Service
 from Wrappers.crud import get_property_external_id
+
+LOGGER = logging.getLogger(__name__)
+LOGGER.setLevel(logging.INFO)
 
 
 class ProperteaseToClickandgo:
@@ -20,6 +25,7 @@ class ProperteaseToClickandgo:
 
     @staticmethod
     def convert_property(propertease_property):
+        LOGGER.debug("INPUT CONVERTING PROPERTY - PropertEase property: %s", propertease_property)
         clickandgo_property = dict()
         property_id = clickandgo_property.get("_id")
         clickandgo_property["id"] = None if property_id is None else get_property_external_id(ProperteaseToClickandgo.service,
@@ -52,8 +58,7 @@ class ProperteaseToClickandgo:
             else ProperteaseToClickandgo.convert_contacts(propertease_contacts)
         # the following elements are not supported in clickandgo -> no need to convert:
         # - cancellation_policy
-        print(f"\npropertease_property {propertease_property}\n")
-        print(f"clickandgo_property {clickandgo_property}\n")
+        LOGGER.debug("OUTPUT CONVERTING PROPERTY - ClickAndGo property: %s", clickandgo_property)
         return clickandgo_property
 
     @staticmethod
