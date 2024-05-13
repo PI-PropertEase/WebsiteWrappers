@@ -175,45 +175,48 @@ class CNGWrapper(BaseWrapper):
         _id = crud.get_reservation_external_id(self.service_schema, reservation_internal_id)
         if _id is not None:
             # if reservation made on this service
+            LOGGER.info("Confirming ClickAndGo reservation with: internal_id - '%s'; external_id '%s'", reservation_internal_id, _id)
             url = self.url + f"reservations/{_id}"
-            print("Confirming reservation...", reservation_internal_id)
+            LOGGER.info("PUT request call in ClickAndGo API to confirm reservation at '%s'...", url)
             response = requests.put(url=url, json={"reservation_status": "confirmed"})
             if response.status_code == 200:
                 crud.update_reservation(self.service_schema, reservation_internal_id,
                                         response.json()["reservation_status"])
             else:
-                print("Error confirming reservation")
+                LOGGER.error("Error confirming reservation. Response: %s", response.content)
         else:
-            print("Creating already confirmed reservation as an event...", reservation_internal_id)
+            LOGGER.info("Creating already confirmed reservation as an event. Reservation_internal_id: '%s'", reservation_internal_id)
             self.create_management_event(property_internal_id, reservation_internal_id, begin_datetime, end_datetime)
 
     def cancel_overlapping_reservation(self, reservation_internal_id: int):
         _id = crud.get_reservation_external_id(self.service_schema, reservation_internal_id)
         if _id is not None:
             # if it's receiving this message, reservation was already made in this service
+            LOGGER.info("Cancelling ClickAndGo OVERLAPPING reservation with: internal_id - '%s'; external_id '%s'", reservation_internal_id, _id)
             url = self.url + f"reservations/{_id}"
-            print("Cancelling reservation...", reservation_internal_id)
+            LOGGER.info("PUT request call in ClickAndGo API at '%s'...", url)
             response = requests.put(url=url, json={"reservation_status": "canceled"})
             if response.status_code == 200:
                 crud.update_reservation(self.service_schema, reservation_internal_id, response.json()["reservation_status"])
             else:
-                print("Error cancelling reservation")
+                LOGGER.error("Error cancelling reservation with internal_id '%s' and external_id '%s'", reservation_internal_id, _id)
         else:
-            print("Error reservation to cancel doesn't exist")
+            LOGGER.error("Reservation with internal_id '%s', requested to cancel doesn't exist", reservation_internal_id)
 
     def cancel_reservation(self, reservation_internal_id: int, property_internal_id: int):
         _id = crud.get_reservation_external_id(self.service_schema, reservation_internal_id)
         if _id is not None:
             # if reservation made on this service
+            LOGGER.info("Cancelling ClickAndGo reservation with: internal_id - '%s'; external_id '%s'", reservation_internal_id, _id)
             url = self.url + f"reservations/{_id}"
-            print("Cancelling reservation...", reservation_internal_id)
+            LOGGER.info("PUT request call in ClickAndGo API at '%s'...", url)
             response = requests.put(url=url, json={"reservation_status": "canceled"})
             if response.status_code == 200:
                 crud.update_reservation(self.service_schema, reservation_internal_id, response.json()["reservation_status"])
             else:
-                print("Error cancelling reservation")
+                LOGGER.error("Error cancelling reservation. Response: '%s'", response.content)
         else:
-            print("Deleting event corresponding to that reservation", reservation_internal_id)
+            LOGGER.info("Deleting ClickAndGo management event in property '%s', corresponding to reservation with internal_id '%s'", property_internal_id, reservation_internal_id)
             self.delete_management_event(property_internal_id, reservation_internal_id)
 
 
@@ -229,7 +232,7 @@ class CNGWrapper(BaseWrapper):
             converted_properties = [
                 ClickandgoToPropertease.convert_property(prop)
                 for prop in clickandgo_properties
-                if (get_property_internal_id(self.service_schema, prop.get("id")) is None)
+                if (crud.get_property_internal_id(self.service_schema, prop.get("id")) is None)
             ]
             return converted_properties
         LOGGER.error("Importing new properties failed with status code %s. Response: %s", response.status_code, response.content)

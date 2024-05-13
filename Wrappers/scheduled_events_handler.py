@@ -25,7 +25,7 @@ def handle_recv(channel, method, properties, body, wrapper:BaseWrapper):
             LOGGER.info("%s - MessageType: RESERVATION_IMPORT_OVERLAP. Body: %s", wrapper.service_schema.name, body)
             wrapper.cancel_overlapping_reservation(body["old_reservation_internal_id"])
         case MessageType.RESERVATION_CANCEL_MESSAGE:
-            print("RESERVATION_CANCEL_MESSAGE: ", body)
+            LOGGER.info("%s - MessageType: RESERVATION_CANCEL_MESSAGE. Body: %s", wrapper.service_schema.name, body)
             wrapper.cancel_reservation(body["old_reservation_internal_id"], body["property_internal_id"])
         case MessageType.RESERVATION_IMPORT_REQUEST:
             LOGGER.info("%s - MessageType: RESERVATION_IMPORT_REQUEST.", wrapper.service_schema.name)

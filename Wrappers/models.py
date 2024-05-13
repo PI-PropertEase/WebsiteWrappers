@@ -1,3 +1,5 @@
+import logging
+
 from sqlalchemy import Column, Integer, event, text, Enum
 from sqlalchemy import create_engine
 from sqlalchemy.event import listen
@@ -7,6 +9,9 @@ from sqlalchemy.orm import sessionmaker
 from enum import Enum as EnumType
 
 from ProjectUtils.MessagingService.schemas import Service
+
+LOGGER = logging.getLogger(__name__)
+LOGGER.setLevel(logging.INFO)
 
 SQLALCHEMY_DATABASE_URL = "sqlite:///./idMapping.db"
 
@@ -121,7 +126,7 @@ def increment_property_sequence_id_before_insert(mapper, connection, target):
             target.internal_id = global_counter
             session.execute(text("UPDATE sequence_id_properties SET auto_incremented = auto_incremented + 1"))
     except SQLAlchemyError as e:
-        print(e)
+        LOGGER.error("Error while incrementing auto_incremented sequence_id for PROPERTIES: '%s'", e._message)
         session.rollback()
 
 
@@ -137,7 +142,7 @@ def increment_reservation_sequence_id_before_insert(mapper, connection, target):
             target.internal_id = global_counter
             session.execute(text("UPDATE sequence_id_reservations SET auto_incremented = auto_incremented + 1"))
     except SQLAlchemyError as e:
-        print(e)
+        LOGGER.error("Error while incrementing auto_incremented sequence_id for RESERVATIONS: '%s'", e._message)
         session.rollback()
 
 
