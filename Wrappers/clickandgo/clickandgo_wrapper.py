@@ -16,7 +16,7 @@ from .. import crud
 class CNGWrapper(BaseWrapper):
     def __init__(self, queue: str) -> None:
         super().__init__(
-            url="http://localhost:8002/",
+            url="http://host.docker.internal:8002/",
             queue=queue,
             service_schema=Service.CLICKANDGO,
         )
