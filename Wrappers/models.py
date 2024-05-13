@@ -56,9 +56,6 @@ class SequenceIdProperties(SequenceId): __tablename__ = "sequence_id_properties"
 class SequenceIdReservations(SequenceId): __tablename__ = "sequence_id_reservations"
 
 
-class SequenceIdManagement(SequenceId): __tablename__ = "sequence_id_management"
-
-
 # Concrete Classes - PropertyIdMappers
 class PropertyIdMapperZooking(PropertyIdMapper): __tablename__ = "property_id_mapper_zooking"
 

@@ -48,11 +48,15 @@ class BaseWrapper(ABC):
         pass
 
     @abstractmethod
-    def confirm_reservation(self, reservation_internal_id):
+    def confirm_reservation(self, reservation_internal_id: int, property_internal_id: int, begin_datetime: str, end_datetime: str):
         pass
 
     @abstractmethod
-    def delete_reservation(self, reservation_internal_id):
+    def cancel_overlapping_reservation(self, reservation_internal_id: int):
+        pass
+
+    @abstractmethod
+    def cancel_reservation(self, reservation_internal_id: int, property_internal_id: int):
         pass
 
     @abstractmethod

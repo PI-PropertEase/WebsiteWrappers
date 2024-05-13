@@ -10,8 +10,7 @@ from ProjectUtils.MessagingService.queue_definitions import (
     WRAPPER_CLICKANDGO_ROUTING_KEY, WRAPPER_BROADCAST_ROUTING_KEY,
 )
 from ..models import Service, ReservationStatus
-from ..crud import get_management_event, get_property_external_id, get_property_internal_id, set_property_internal_id, \
-    get_reservation_external_id, get_reservation_by_external_id, create_management_event
+from .. import crud
 
 
 class CNGWrapper(BaseWrapper):
@@ -39,7 +38,7 @@ class CNGWrapper(BaseWrapper):
         requests.post(url=url, json=property)
 
     def update_property(self, prop_internal_id: int, prop_update_parameters: dict):
-        external_id = get_property_external_id(self.service_schema, prop_internal_id)
+        external_id = crud.get_property_external_id(self.service_schema, prop_internal_id)
         url = self.url + f"properties/{external_id}"
         print("Updating property...")
         print("internal_id", prop_internal_id, "external_id", external_id)
@@ -54,7 +53,7 @@ class CNGWrapper(BaseWrapper):
 
     def create_management_event(self, property_internal_id: int, event_internal_id: int, begin_datetime: str,
                                 end_datetime: str):
-        property_external_id = get_property_external_id(self.service_schema, property_internal_id)
+        property_external_id = crud.get_property_external_id(self.service_schema, property_internal_id)
         if property_external_id is None:
             print(f"Property with internal_id {property_internal_id} not found in IdMapper database.")
             return
@@ -71,19 +70,19 @@ class CNGWrapper(BaseWrapper):
                 if (management_event["begin_datetime"] == begin_datetime and
                         management_event["end_datetime"] == end_datetime):
                     # management_event_id is the external id
-                    create_management_event(self.service_schema, event_internal_id, management_event_id)
+                    crud.create_management_event(self.service_schema, event_internal_id, management_event_id)
                     print(f"Successfully created management event with internal_id {event_internal_id}")
                     return
         print(f"Failed to create management event with internal_id {event_internal_id}")
 
     def update_management_event(self, property_internal_id: int, event_internal_id: int, begin_datetime: str,
                                 end_datetime: str):
-        property_external_id = get_property_external_id(self.service_schema, property_internal_id)
+        property_external_id = crud.get_property_external_id(self.service_schema, property_internal_id)
         if property_external_id is None:
             print(f"Property with internal_id {property_internal_id} not found in IdMapper database.")
             return
 
-        management_event_external = get_management_event(self.service_schema, event_internal_id)
+        management_event_external = crud.get_management_event(self.service_schema, event_internal_id)
 
         if management_event_external is None:
             print(f"External counterpart of management event with internal_id {event_internal_id} not found.")
@@ -102,12 +101,12 @@ class CNGWrapper(BaseWrapper):
         print(f"Failed to update management event with internal_id {event_internal_id}")
 
     def delete_management_event(self, property_internal_id: int, event_internal_id: int):
-        property_external_id = get_property_external_id(self.service_schema, property_internal_id)
+        property_external_id = crud.get_property_external_id(self.service_schema, property_internal_id)
         if property_external_id is None:
             print(f"Property with internal_id {property_internal_id} not found in IdMapper database.")
             return
 
-        management_event_external = get_management_event(self.service_schema, event_internal_id)
+        management_event_external = crud.get_management_event(self.service_schema, event_internal_id)
 
         if management_event_external is None:
             print(f"External counterpart of management event with internal_id {event_internal_id} not found.")
@@ -117,6 +116,9 @@ class CNGWrapper(BaseWrapper):
         res = requests.delete(url=url)
         if res.status_code == 204:  # no content
             print(f"Successfully deleted management event with internal_id {event_internal_id}")
+            crud.delete_management_event(self.service_schema, event_internal_id)
+        else:
+            print("Failed deleting management event", res.json())
 
     def import_properties(self, user):
         url = self.url + "properties?email=" + user.get("email")
@@ -145,24 +147,59 @@ class CNGWrapper(BaseWrapper):
         converted_reservations = [
             ClickandgoToPropertease.convert_reservation(r, email, reservation)
             for r in clickandgo_reservations
-            if get_property_internal_id(self.service_schema, r["property_id"]) is not None and
-               ((reservation := get_reservation_by_external_id(self.service_schema, r["id"])) is None or
+            if crud.get_property_internal_id(self.service_schema, r["property_id"]) is not None and
+               ((reservation := crud.get_reservation_by_external_id(self.service_schema, r["id"])) is None or
                 (r[
                      "reservation_status"] == "canceled" and reservation.reservation_status != ReservationStatus.CANCELED))
         ]
         return converted_reservations
 
-    def confirm_reservation(self, reservation_internal_id):
-        _id = get_reservation_external_id(self.service_schema, reservation_internal_id)
-        url = self.url + f"reservations/{_id}"
-        print("Confirming reservation...", reservation_internal_id)
-        requests.put(url=url, json={"reservation_status": "confirmed"})
+    def confirm_reservation(self, reservation_internal_id: int, property_internal_id: int, begin_datetime: str,
+                            end_datetime: str):
+        _id = crud.get_reservation_external_id(self.service_schema, reservation_internal_id)
+        if _id is not None:
+            # if reservation made on this service
+            url = self.url + f"reservations/{_id}"
+            print("Confirming reservation...", reservation_internal_id)
+            response = requests.put(url=url, json={"reservation_status": "confirmed"})
+            if response.status_code == 200:
+                crud.update_reservation(self.service_schema, reservation_internal_id,
+                                        response.json()["reservation_status"])
+            else:
+                print("Error confirming reservation")
+        else:
+            print("Creating already confirmed reservation as an event...", reservation_internal_id)
+            self.create_management_event(property_internal_id, reservation_internal_id, begin_datetime, end_datetime)
 
-    def delete_reservation(self, reservation_internal_id):
-        _id = get_reservation_external_id(self.service_schema, reservation_internal_id)
-        url = self.url + f"reservations/{_id}"
-        print("Deleting reservation...", reservation_internal_id)
-        requests.delete(url=url)
+    def cancel_overlapping_reservation(self, reservation_internal_id: int):
+        _id = crud.get_reservation_external_id(self.service_schema, reservation_internal_id)
+        if _id is not None:
+            # if it's receiving this message, reservation was already made in this service
+            url = self.url + f"reservations/{_id}"
+            print("Cancelling reservation...", reservation_internal_id)
+            response = requests.put(url=url, json={"reservation_status": "canceled"})
+            if response.status_code == 200:
+                crud.update_reservation(self.service_schema, reservation_internal_id, response.json()["reservation_status"])
+            else:
+                print("Error cancelling reservation")
+        else:
+            print("Error reservation to cancel doesn't exist")
+
+    def cancel_reservation(self, reservation_internal_id: int, property_internal_id: int):
+        _id = crud.get_reservation_external_id(self.service_schema, reservation_internal_id)
+        if _id is not None:
+            # if reservation made on this service
+            url = self.url + f"reservations/{_id}"
+            print("Cancelling reservation...", reservation_internal_id)
+            response = requests.put(url=url, json={"reservation_status": "canceled"})
+            if response.status_code == 200:
+                crud.update_reservation(self.service_schema, reservation_internal_id, response.json()["reservation_status"])
+            else:
+                print("Error cancelling reservation")
+        else:
+            print("Deleting event corresponding to that reservation", reservation_internal_id)
+            self.delete_management_event(property_internal_id, reservation_internal_id)
+
 
     def import_new_properties(self, user):
         email = user.get("email")
