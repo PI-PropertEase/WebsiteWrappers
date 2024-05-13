@@ -34,8 +34,17 @@ def handle_recv(channel, method, properties, body, wrapper):
             # 1. Update the internal ids of the properties (because of duplicated properties in PropertyService)
             # 2. Import the reservations with the newly updated internal ids to map those into
             old_new_id_map = body["old_new_id_map"]
+            new_internal_ids = []
             for old_internal_id, new_internal_id in old_new_id_map.items():
                 set_property_mapped_id(wrapper.service_schema, old_internal_id, new_internal_id)
+                new_internal_ids.append(new_internal_id)
+
+            channel.basic_publish(exchange=EXCHANGE_NAME, routing_key=WRAPPER_TO_CALENDAR_ROUTING_KEY, body=to_json(
+                MessageFactory.create_reservation_import_request_other_services_confirmed_reservations_message(
+                    wrapper.service_schema, new_internal_ids
+                )
+            ))
+
             reservations = wrapper.import_reservations(body)
             channel.basic_publish(exchange=EXCHANGE_NAME, routing_key=WRAPPER_TO_CALENDAR_ROUTING_KEY, body=to_json(
                 MessageFactory.create_import_reservations_response_message(wrapper.service_schema, reservations)
