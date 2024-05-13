@@ -1,5 +1,6 @@
 import logging
 
+from sys import stdout
 from ProjectUtils.MessagingService.queue_definitions import channel, EXCHANGE_NAME, WRAPPER_TO_APP_ROUTING_KEY, \
     WRAPPER_TO_CALENDAR_ROUTING_KEY
 from ProjectUtils.MessagingService.schemas import (
@@ -9,12 +10,14 @@ from ProjectUtils.MessagingService.schemas import (
 )
 from Wrappers.base_wrapper.wrapper import BaseWrapper
 
+logging.basicConfig(level=logging.INFO, stream=stdout)
 LOGGER = logging.getLogger(__name__)
+LOGGER.setLevel(logging.INFO)
 
 
 def handle_recv(channel, method, properties, body, wrapper:BaseWrapper):
     delivery_tag = method.delivery_tag
-    LOGGER.info("%s: received message", wrapper.service_schema.name)
+    LOGGER.info("%s - received message", wrapper.service_schema.name)
     message = from_json(body)
     body = message.body
     match message.message_type:
