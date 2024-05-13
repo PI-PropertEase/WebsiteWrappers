@@ -149,11 +149,14 @@ class EarthStayinWrapper(BaseWrapper):
     def import_new_properties(self, user):
         email = user.get("email")
         url = f"{self.url}properties?email={email}"
-        earthstayin_properties = requests.get(url=url).json()
-        # import properties that don't exist -> not mapped in our database
-        converted_properties = [
-            EarthstayinToPropertease.convert_property(prop)
-            for prop in earthstayin_properties
-            if (crud.get_property_internal_id(self.service_schema, prop.get("id")) is None)
-        ]
-        return converted_properties
+        response = requests.get(url=url)
+        if response.status_code == 200:
+            earthstayin_properties = response.json()
+            # import properties that don't exist -> not mapped in our database
+            converted_properties = [
+                EarthstayinToPropertease.convert_property(prop)
+                for prop in earthstayin_properties
+                if (crud.get_property_internal_id(self.service_schema, prop.get("id")) is None)
+            ]
+            return converted_properties
+        return []

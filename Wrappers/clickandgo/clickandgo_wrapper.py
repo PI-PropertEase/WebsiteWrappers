@@ -167,11 +167,14 @@ class CNGWrapper(BaseWrapper):
     def import_new_properties(self, user):
         email = user.get("email")
         url = f"{self.url}properties?email={email}"
-        clickandgo_properties = requests.get(url=url).json()
-        # import properties that don't exist -> not mapped in our database
-        converted_properties = [
-            ClickandgoToPropertease.convert_property(prop)
-            for prop in clickandgo_properties
-            if (get_property_internal_id(self.service_schema, prop.get("id")) is None)
-        ]
-        return converted_properties
+        response = requests.get(url=url)
+        if response.status_code == 200:
+            clickandgo_properties = response.json()
+            # import properties that don't exist -> not mapped in our database
+            converted_properties = [
+                ClickandgoToPropertease.convert_property(prop)
+                for prop in clickandgo_properties
+                if (get_property_internal_id(self.service_schema, prop.get("id")) is None)
+            ]
+            return converted_properties
+        return []
