@@ -37,7 +37,6 @@ def handle_recv(channel, method, properties, body, wrapper:BaseWrapper):
                                           ))
         case MessageType.RESERVATION_IMPORT_CONFIRM:
             LOGGER.info("%s - MessageType: RESERVATION_IMPORT_CONFIRM. Body: %s", wrapper.service_schema.name, body)
-            print("RESERVATION_IMPORT_CONFIRM: ", body)
             wrapper.confirm_reservation(body["internal_id"])
         case MessageType.SCHEDULED_PROPERTY_IMPORT:
             LOGGER.info("%s - MessageType: SCHEDULED_PROPERTY_IMPORT.", wrapper.service_schema.name)
@@ -46,7 +45,6 @@ def handle_recv(channel, method, properties, body, wrapper:BaseWrapper):
                     properties = wrapper.import_new_properties({"email": user_email})
                     if len(properties) > 0:
                         LOGGER.info("%s - Detected new properties. Addresses: %s", wrapper.service_schema.name, [p.get("address") for p in properties])
-                        print("Detected new properties --> sending it to PropertyService")
                         channel.basic_publish(exchange=EXCHANGE_NAME, routing_key=WRAPPER_TO_APP_ROUTING_KEY,
                                             body=to_json(
                                                 MessageFactory.create_import_properties_response_message(
