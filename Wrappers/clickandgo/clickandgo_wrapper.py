@@ -123,7 +123,7 @@ class CNGWrapper(BaseWrapper):
             return
 
         url = self.url + f"properties/{property_external_id}/events/{management_event_external.external_id}"
-        LOGGER.info("PUT request call (to delete management event for property_external_id '%s') in ClickAndGo API at '%s'... Deleting event_external_id '%s'", 
+        LOGGER.info("DELETE request call (to delete management event for property_external_id '%s') in ClickAndGo API at '%s'... Deleting event_external_id '%s'", 
                     property_external_id, url, management_event_external.external_id)
 
         res = requests.delete(url=url)
@@ -180,7 +180,6 @@ class CNGWrapper(BaseWrapper):
         LOGGER.info("Deleting ClickAndGo reservation with: internal_id - '%s'; external_id '%s'", reservation_internal_id, _id)
         url = self.url + f"reservations/{_id}"
         LOGGER.info("DELETE request call in ClickAndGo API at '%s'...", url)
-        print("Deleting reservation...", reservation_internal_id)
         requests.delete(url=url)
 
     def import_new_properties(self, user):
@@ -198,4 +197,5 @@ class CNGWrapper(BaseWrapper):
                 if (get_property_internal_id(self.service_schema, prop.get("id")) is None)
             ]
             return converted_properties
+        LOGGER.error("Importing new properties failed with status code %s. Response: %s", response.status_code, response.content)
         return []
