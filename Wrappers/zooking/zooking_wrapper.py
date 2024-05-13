@@ -202,3 +202,19 @@ class ZookingWrapper(BaseWrapper):
         else:
             print("Deleting event corresponding to that reservation", reservation_internal_id)
             self.delete_management_event(property_internal_id, reservation_internal_id)
+
+            
+    def import_new_properties(self, user):
+        email = user.get("email")
+        url = f"{self.url}properties?email={email}"
+        response = requests.get(url=url)
+        if response.status_code == 200:
+            zooking_properties = response.json()
+            # import properties that don't exist -> not mapped in our database
+            converted_properties = [
+                ZookingToPropertease.convert_property(prop)
+                for prop in zooking_properties
+                if (crud.get_property_internal_id(self.service_schema, prop.get("id")) is None)
+            ]
+            return converted_properties
+        return []

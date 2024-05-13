@@ -47,7 +47,7 @@ class ProperteaseToClickandgo:
             if (propertease_house_rules := propertease_property.get("house_rules")) is None \
             else ProperteaseToClickandgo.convert_house_rules(propertease_house_rules)
         clickandgo_property["additional_info"] = propertease_property.get("additional_info")
-        clickandgo_property["house_manager"] = None \
+        clickandgo_property["house_managers"] = None \
             if (propertease_contacts := propertease_property.get("contacts")) is None \
             else ProperteaseToClickandgo.convert_contacts(propertease_contacts)
         # the following elements are not supported in clickandgo -> no need to convert:
@@ -106,11 +106,14 @@ class ProperteaseToClickandgo:
 
     @staticmethod
     def convert_contacts(propertease_contacts):
-        return {
-                "name": propertease_contacts[0].get("name"),
-                "phone_number": propertease_contacts[0].get("phone_number"),
+        clickandgo_contacts = []
+        for contact in propertease_contacts:
+            clickandgo_contacts.append({
+                "name": contact.get("name"),
+                "phone_number": contact.get("phone_number"),
                 "languages": []
-            } if len(propertease_contacts) > 0 else {}
+            })
+        return clickandgo_contacts
 
     @staticmethod
     def convert_price(propertease_price: float, after_commission: bool) -> float:
