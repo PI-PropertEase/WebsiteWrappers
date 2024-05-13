@@ -1,5 +1,10 @@
+import logging
+
 from ProjectUtils.MessagingService.schemas import Service
 from Wrappers.crud import get_property_external_id
+
+LOGGER = logging.getLogger(__name__)
+LOGGER.setLevel(logging.INFO)
 
 
 class ProperteaseToEarthstayin:
@@ -19,6 +24,7 @@ class ProperteaseToEarthstayin:
 
     @staticmethod
     def convert_property(propertease_property):
+        LOGGER.debug("INPUT CONVERTING PROPERTY - PropertEase property: %s", propertease_property)
         earthstayin_property = dict()
         property_id = earthstayin_property.get("_id")
         earthstayin_property["id"] = None if property_id is None else get_property_external_id(ProperteaseToEarthstayin.service,
@@ -51,8 +57,8 @@ class ProperteaseToEarthstayin:
         # the following elements are not supported in earthstayin -> no need to convert:
         # - cancellation_policy
         # - contacts
-        print(f"\npropertease_property {propertease_property}\n")
-        print(f"earthstayin_property {earthstayin_property}\n")
+        LOGGER.debug("OUTPUT CONVERTING PROPERTY - Earthstayin property: %s", earthstayin_property)
+
         return earthstayin_property
 
     @staticmethod

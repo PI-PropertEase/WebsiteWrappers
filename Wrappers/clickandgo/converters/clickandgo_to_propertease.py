@@ -1,8 +1,13 @@
+import logging
+
 from ProjectUtils.MessagingService.schemas import Service
 from Wrappers.base_wrapper.utils import invert_map
 from Wrappers.clickandgo.converters.propertease_to_clickandgo import ProperteaseToClickandgo
 from Wrappers.models import ReservationIdMapper, ReservationStatus
 from Wrappers.crud import get_property_internal_id, set_property_internal_id, create_reservation, update_reservation
+
+LOGGER = logging.getLogger(__name__)
+LOGGER.setLevel(logging.INFO)
 
 
 class ClickandgoToPropertease:
@@ -13,6 +18,7 @@ class ClickandgoToPropertease:
 
     @staticmethod
     def convert_property(clickandgo_property):
+        LOGGER.debug("INPUT CONVERTING PROPERTY - ClickAndGo property: %s", clickandgo_property)
         propertease_property = {}
         propertease_property["_id"] = set_property_internal_id(ClickandgoToPropertease.service, clickandgo_property.get("id"))
         propertease_property["user_email"] = clickandgo_property.get("user_email")
@@ -40,6 +46,7 @@ class ClickandgoToPropertease:
             clickandgo_property.get("house_managers")
         )
 
+        LOGGER.debug("OUTPUT CONVERTING PROPERTY - PropertEase property: %s", propertease_property)
         return propertease_property
 
     @staticmethod
@@ -115,10 +122,12 @@ class ClickandgoToPropertease:
 
     @staticmethod
     def convert_reservation(clickandgo_reservation, owner_email: str, reservation: ReservationIdMapper = None):
-        print("\nclickandgo_reservation", clickandgo_reservation)
+        LOGGER.debug("INPUT CONVERTING RESERVATIONS - ClickAndGo reservation: %s", clickandgo_reservation)
         reservation_status = clickandgo_reservation.get("reservation_status")
         if reservation is not None:
             reservation_id = reservation.internal_id
+            LOGGER.info("Existing reservation with status '%s' detected. New reservation status: '%s'", 
+                        reservation.reservation_status, reservation_status)
             update_reservation(ClickandgoToPropertease.service, reservation_id, reservation_status)
         else:
             reservation_id = create_reservation(ClickandgoToPropertease.service, clickandgo_reservation.get("id"), reservation_status).internal_id
@@ -135,6 +144,6 @@ class ClickandgoToPropertease:
             "client_phone": clickandgo_reservation.get("client_phone"),
             "cost": clickandgo_reservation.get("cost"),
         }
-        print("\npropertease_reservation", propertease_reservation)
+        LOGGER.debug("OUTPUT CONVERTING RESERVATION - PropertEase reservation: %s", propertease_reservation)
         return propertease_reservation
 

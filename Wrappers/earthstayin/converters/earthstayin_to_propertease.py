@@ -1,8 +1,13 @@
+import logging
+
 from ProjectUtils.MessagingService.schemas import Service
 from Wrappers.base_wrapper.utils import invert_map
 from Wrappers.earthstayin.converters.propertease_to_earthstayin import ProperteaseToEarthstayin
 from Wrappers.models import ReservationIdMapper, ReservationStatus
 from Wrappers.crud import get_property_internal_id, set_property_internal_id, create_reservation, update_reservation
+
+LOGGER = logging.getLogger(__name__)
+LOGGER.setLevel(logging.INFO)
 
 
 class EarthstayinToPropertease:
@@ -13,6 +18,7 @@ class EarthstayinToPropertease:
 
     @staticmethod
     def convert_property(earthstayin_property):
+        LOGGER.debug("INPUT CONVERTING PROPERTY - Earthstayin property: %s", earthstayin_property)
         propertease_property = {}
         propertease_property["_id"] = set_property_internal_id(EarthstayinToPropertease.service,
                                                                earthstayin_property.get("id"))
@@ -40,6 +46,7 @@ class EarthstayinToPropertease:
         propertease_property["cancellation_policy"] = ""  # not supported in earthstayin
         propertease_property["contacts"] = []  # not supported in earthstayin
 
+        LOGGER.debug("OUTPUT CONVERTING PROPERTY - PropertEase property: %s", propertease_property)
         return propertease_property
 
     @staticmethod
@@ -104,10 +111,12 @@ class EarthstayinToPropertease:
 
     @staticmethod
     def convert_reservation(earthstayin_reservation, owner_email: str, reservation: ReservationIdMapper = None):
-        print("\nearthstayin_reservation", earthstayin_reservation)
+        LOGGER.debug("INPUT CONVERTING RESERVATIONS - Earthstayin reservation: %s", earthstayin_reservation)
         reservation_status = earthstayin_reservation.get("reservation_status")
         if reservation is not None:
             reservation_id = reservation.internal_id
+            LOGGER.info("Existing reservation with status '%s' detected. New reservation status: '%s'", 
+                        reservation.reservation_status, reservation_status)
             update_reservation(EarthstayinToPropertease.service, reservation_id, reservation_status)
         else:
             reservation_id = create_reservation(EarthstayinToPropertease.service, earthstayin_reservation.get("id"), reservation_status).internal_id
@@ -124,5 +133,5 @@ class EarthstayinToPropertease:
             "client_phone": earthstayin_reservation.get("client_phone"),
             "cost": earthstayin_reservation.get("cost"),
         }
-        print("\npropertease_reservation", propertease_reservation)
+        LOGGER.debug("OUTPUT CONVERTING RESERVATION - PropertEase reservation: %s", propertease_reservation)
         return propertease_reservation
