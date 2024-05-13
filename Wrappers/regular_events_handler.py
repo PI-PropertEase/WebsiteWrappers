@@ -45,8 +45,17 @@ def handle_recv(channel, method, properties, body, wrapper):
             # 2. Import the reservations with the newly updated internal ids to map those into
             LOGGER.info("%s - MessageType: RESERVATION_IMPORT_INITIAL_REQUEST - Duplicate properties ID map: %s", wrapper.service_schema.name, body)
             old_new_id_map = body["old_new_id_map"]
+            new_internal_ids = []
             for old_internal_id, new_internal_id in old_new_id_map.items():
                 set_property_mapped_id(wrapper.service_schema, old_internal_id, new_internal_id)
+                new_internal_ids.append(new_internal_id)
+
+            channel.basic_publish(exchange=EXCHANGE_NAME, routing_key=WRAPPER_TO_CALENDAR_ROUTING_KEY, body=to_json(
+                MessageFactory.create_reservation_import_request_other_services_confirmed_reservations_message(
+                    wrapper.service_schema, new_internal_ids
+                )
+            ))
+
             reservations = wrapper.import_reservations(body)
             LOGGER.info("%s - Sending RESERVATION_IMPORT response to initial import request. Body: %s", wrapper.service_schema.name, reservations)
             channel.basic_publish(exchange=EXCHANGE_NAME, routing_key=WRAPPER_TO_CALENDAR_ROUTING_KEY, body=to_json(

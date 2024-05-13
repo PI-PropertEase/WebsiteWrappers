@@ -23,7 +23,10 @@ def handle_recv(channel, method, properties, body, wrapper:BaseWrapper):
     match message.message_type:
         case MessageType.RESERVATION_IMPORT_OVERLAP:
             LOGGER.info("%s - MessageType: RESERVATION_IMPORT_OVERLAP. Body: %s", wrapper.service_schema.name, body)
-            wrapper.delete_reservation(body["old_internal_id"])
+            wrapper.cancel_overlapping_reservation(body["old_reservation_internal_id"])
+        case MessageType.RESERVATION_CANCEL_MESSAGE:
+            print("RESERVATION_CANCEL_MESSAGE: ", body)
+            wrapper.cancel_reservation(body["old_reservation_internal_id"], body["property_internal_id"])
         case MessageType.RESERVATION_IMPORT_REQUEST:
             LOGGER.info("%s - MessageType: RESERVATION_IMPORT_REQUEST.", wrapper.service_schema.name)
             for user_email, user_service in body["users_with_services"].items():
@@ -37,7 +40,12 @@ def handle_recv(channel, method, properties, body, wrapper:BaseWrapper):
                                           ))
         case MessageType.RESERVATION_IMPORT_CONFIRM:
             LOGGER.info("%s - MessageType: RESERVATION_IMPORT_CONFIRM. Body: %s", wrapper.service_schema.name, body)
-            wrapper.confirm_reservation(body["internal_id"])
+            wrapper.confirm_reservation(
+                body["reservation_internal_id"],
+                body["property_internal_id"],
+                body["begin_datetime"],
+                body["end_datetime"],
+            )
         case MessageType.SCHEDULED_PROPERTY_IMPORT:
             LOGGER.info("%s - MessageType: SCHEDULED_PROPERTY_IMPORT.", wrapper.service_schema.name)
             for user_email, user_service in body["users_with_services"].items():

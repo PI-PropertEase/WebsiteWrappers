@@ -59,10 +59,20 @@ class EarthStayinWrapper(BaseWrapper):
                                 end_datetime: str):
         LOGGER.info("Creating Management Event in Earthstayin external API for property_internal_id '%s': Event_internal_id - '%s'; Begin_datetime - '%s'; End_datetime - '%s'", 
                     property_internal_id, event_internal_id, begin_datetime, end_datetime)
+        external_id = crud.get_property_external_id(self.service_schema, property_internal_id)
+        if external_id is None:
+            print(f"Property with internal_id {property_internal_id} not found in IdMapper database.")
+            return
+
         url = self.url + "properties/closedtimeframes"
         LOGGER.info("POST request call (create management event) in Earthstayin API at '%s'...", url)
+        print("THIS IS THE BODY", {
+            "property_id": external_id,
+            "begin_datetime": begin_datetime,
+            "end_datetime": end_datetime
+        })
         response = requests.post(url=url, json={
-            "property_id": crud.get_property_external_id(self.service_schema, property_internal_id),
+            "property_id": external_id,
             "begin_datetime": begin_datetime,
             "end_datetime": end_datetime
         })
@@ -76,6 +86,10 @@ class EarthStayinWrapper(BaseWrapper):
                                 end_datetime: str):
         LOGGER.info("Updating Management Event in Earthstayin external API for property_internal_id '%s': Event_internal_id - '%s'; Begin_datetime - '%s'; End_datetime - '%s'", 
                     property_internal_id, event_internal_id, begin_datetime, end_datetime)
+        if crud.get_property_external_id(self.service_schema, property_internal_id) is None:
+            LOGGER.error("Property with internal_id %s not found in IdMapper database.", property_internal_id)
+            return
+
         event = crud.get_management_event(self.service_schema, event_internal_id)
         if event is None:
             LOGGER.error("External counterpart of management event with internal_id '%s' not found.", event_internal_id)
@@ -95,6 +109,10 @@ class EarthStayinWrapper(BaseWrapper):
     def delete_management_event(self, property_internal_id: int, event_internal_id: int):
         LOGGER.info("Deleting Management Event in Earthstayin external API for property_internal_id '%s': Event_internal_id - '%s'", 
                     property_internal_id, event_internal_id)
+        if crud.get_property_external_id(self.service_schema, property_internal_id) is None:
+            LOGGER.error("Property with internal_id %s not found in IdMapper database.", property_internal_id)
+            return
+
         event = crud.get_management_event(self.service_schema, event_internal_id)
         if event is None:
             LOGGER.error("External counterpart of management event with internal_id '%s' not found.", event_internal_id)
@@ -148,19 +166,51 @@ class EarthStayinWrapper(BaseWrapper):
         ]
         return converted_reservations
 
-    def confirm_reservation(self, reservation_internal_id):
+    def confirm_reservation(self, reservation_internal_id: int, property_internal_id: int, begin_datetime: str,
+                            end_datetime: str):
         _id = crud.get_reservation_external_id(self.service_schema, reservation_internal_id)
-        LOGGER.info("Confirming Earthstayin reservation with: internal_id - '%s'; external_id '%s'", reservation_internal_id, _id)
-        url = self.url + f"reservations/{_id}"
-        LOGGER.info("PUT request call in Earthstayin API to confirm reservation at '%s'...", url)
-        requests.put(url=url, json={"reservation_status": "confirmed"})
+        if _id is not None:
+            # if reservation made on this service
+            url = self.url + f"reservations/{_id}"
+            print("Confirming reservation...", reservation_internal_id)
+            response = requests.put(url=url, json={"reservation_status": "confirmed"})
+            if response.status_code == 200:
+                crud.update_reservation(self.service_schema, reservation_internal_id,
+                                        response.json()["reservation_status"])
+            else:
+                print("Error confirming reservation")
+        else:
+            print("Creating already confirmed reservation as an event...", reservation_internal_id)
+            self.create_management_event(property_internal_id, reservation_internal_id, begin_datetime, end_datetime)
 
-    def delete_reservation(self, reservation_internal_id):
+    def cancel_overlapping_reservation(self, reservation_internal_id: int):
         _id = crud.get_reservation_external_id(self.service_schema, reservation_internal_id)
-        LOGGER.info("Deleting Earthstayin reservation with: internal_id - '%s'; external_id '%s'", reservation_internal_id, _id)
-        url = self.url + f"reservations/{_id}"
-        LOGGER.info("DELETE request call in Earthstayin API at '%s'...", url)
-        requests.delete(url=url)
+        if _id is not None:
+            # if it's receiving this message, reservation was already made in this service
+            url = self.url + f"reservations/{_id}"
+            print("Cancelling reservation...", reservation_internal_id)
+            response = requests.put(url=url, json={"reservation_status": "canceled"})
+            if response.status_code == 200:
+                crud.update_reservation(self.service_schema, reservation_internal_id, response.json()["reservation_status"])
+            else:
+                print("Error cancelling reservation")
+        else:
+            print("Error reservation to cancel doesn't exist")
+
+    def cancel_reservation(self, reservation_internal_id: int, property_internal_id: int):
+        _id = crud.get_reservation_external_id(self.service_schema, reservation_internal_id)
+        if _id is not None:
+            # if reservation made on this service
+            url = self.url + f"reservations/{_id}"
+            print("Cancelling reservation...", reservation_internal_id)
+            response = requests.put(url=url, json={"reservation_status": "canceled"})
+            if response.status_code == 200:
+                crud.update_reservation(self.service_schema, reservation_internal_id, response.json()["reservation_status"])
+            else:
+                print("Error cancelling reservation")
+        else:
+            print("Deleting event corresponding to that reservation", reservation_internal_id)
+            self.delete_management_event(property_internal_id, reservation_internal_id)
 
     def import_new_properties(self, user):
         email = user.get("email")
@@ -179,3 +229,4 @@ class EarthStayinWrapper(BaseWrapper):
             return converted_properties
         LOGGER.error("Importing new properties failed with status code %s. Response: %s", response.status_code, response.content)
         return []
+

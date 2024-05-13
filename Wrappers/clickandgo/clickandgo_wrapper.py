@@ -11,8 +11,7 @@ from ProjectUtils.MessagingService.queue_definitions import (
     WRAPPER_CLICKANDGO_ROUTING_KEY, WRAPPER_BROADCAST_ROUTING_KEY,
 )
 from ..models import Service, ReservationStatus
-from ..crud import get_management_event, get_property_external_id, get_property_internal_id, set_property_internal_id, \
-    get_reservation_external_id, get_reservation_by_external_id, create_management_event
+from .. import crud
 
 LOGGER = logging.getLogger(__name__)
 LOGGER.setLevel(logging.INFO)
@@ -42,7 +41,7 @@ class CNGWrapper(BaseWrapper):
         requests.post(url=url, json=property)
 
     def update_property(self, prop_internal_id: int, prop_update_parameters: dict):
-        external_id = get_property_external_id(self.service_schema, prop_internal_id)
+        external_id = crud.get_property_external_id(self.service_schema, prop_internal_id)
         url = self.url + f"properties/{external_id}"
         LOGGER.info("Updating property in ClickAndGo external API. Internal_id - '%s'; External_id - '%s'. Update parameters: %s", prop_internal_id, external_id, prop_update_parameters)
         requests.put(url=url, json=ProperteaseToClickandgo.convert_property(prop_update_parameters))
@@ -57,7 +56,7 @@ class CNGWrapper(BaseWrapper):
                                 end_datetime: str):
         LOGGER.info("Creating Management Event in ClickAndGo external API for property_internal_id '%s': Event_internal_id - '%s'; Begin_datetime - '%s'; End_datetime - '%s'", 
                     property_internal_id, event_internal_id, begin_datetime, end_datetime)
-        property_external_id = get_property_external_id(self.service_schema, property_internal_id)
+        property_external_id = crud.get_property_external_id(self.service_schema, property_internal_id)
         if property_external_id is None:
             LOGGER.error("Trying to create a management event for a non-existing property with internal_id '%s'", property_internal_id)
             return
@@ -75,7 +74,7 @@ class CNGWrapper(BaseWrapper):
                 if (management_event["begin_datetime"] == begin_datetime and
                         management_event["end_datetime"] == end_datetime):
                     # management_event_id is the external id
-                    create_management_event(self.service_schema, event_internal_id, management_event_id)
+                    crud.create_management_event(self.service_schema, event_internal_id, management_event_id)
                     LOGGER.info("Successfully created management event with internal_id '%s'", event_internal_id)
                     return
         LOGGER.error("Failed to create management event with internal_id '%s'", event_internal_id)
@@ -84,12 +83,12 @@ class CNGWrapper(BaseWrapper):
                                 end_datetime: str):
         LOGGER.info("Updating Management Event in ClickAndGo external API for property_internal_id '%s': Event_internal_id - '%s'; Begin_datetime - '%s'; End_datetime - '%s'", 
                     property_internal_id, event_internal_id, begin_datetime, end_datetime)
-        property_external_id = get_property_external_id(self.service_schema, property_internal_id)
+        property_external_id = crud.get_property_external_id(self.service_schema, property_internal_id)
         if property_external_id is None:
             LOGGER.error("Trying to update a management event for a non-existing property with internal_id '%s'", property_internal_id)
             return
 
-        management_event_external = get_management_event(self.service_schema, event_internal_id)
+        management_event_external = crud.get_management_event(self.service_schema, event_internal_id)
 
         if management_event_external is None:
             LOGGER.error("Trying to update a management event that does NOT exist - event_internal_id '%s'", event_internal_id)
@@ -111,12 +110,12 @@ class CNGWrapper(BaseWrapper):
     def delete_management_event(self, property_internal_id: int, event_internal_id: int):
         LOGGER.info("Deleting Management Event in ClickAndGo external API for property_internal_id '%s': Event_internal_id - '%s'", 
                     property_internal_id, event_internal_id)
-        property_external_id = get_property_external_id(self.service_schema, property_internal_id)
+        property_external_id = crud.get_property_external_id(self.service_schema, property_internal_id)
         if property_external_id is None:
             LOGGER.error("Trying to delete a management event for a non-existing property with internal_id '%s'", property_internal_id)
             return
 
-        management_event_external = get_management_event(self.service_schema, event_internal_id)
+        management_event_external = crud.get_management_event(self.service_schema, event_internal_id)
 
         if management_event_external is None:
             LOGGER.error("External counterpart of management event with internal_id '%s' not found.", event_internal_id)
@@ -129,6 +128,9 @@ class CNGWrapper(BaseWrapper):
         res = requests.delete(url=url)
         if res.status_code == 204:  # no content
             LOGGER.info("Successfully deleted management event with internal_id '%s'", event_internal_id)
+            crud.delete_management_event(self.service_schema, event_internal_id)
+        else:
+            LOGGER.error("Failed deleting management event", res.content)
 
     def import_properties(self, user):
         email = user.get("email")
@@ -161,26 +163,59 @@ class CNGWrapper(BaseWrapper):
         converted_reservations = [
             ClickandgoToPropertease.convert_reservation(r, email, reservation)
             for r in clickandgo_reservations
-            if get_property_internal_id(self.service_schema, r["property_id"]) is not None and
-               ((reservation := get_reservation_by_external_id(self.service_schema, r["id"])) is None or
+            if crud.get_property_internal_id(self.service_schema, r["property_id"]) is not None and
+               ((reservation := crud.get_reservation_by_external_id(self.service_schema, r["id"])) is None or
                 (r[
                      "reservation_status"] == "canceled" and reservation.reservation_status != ReservationStatus.CANCELED))
         ]
         return converted_reservations
 
-    def confirm_reservation(self, reservation_internal_id):
-        _id = get_reservation_external_id(self.service_schema, reservation_internal_id)
-        LOGGER.info("Confirming ClickAndGo reservation with: internal_id - '%s'; external_id '%s'", reservation_internal_id, _id)
-        url = self.url + f"reservations/{_id}"
-        LOGGER.info("PUT request call in ClickAndGo API to confirm reservation at '%s'...", url)
-        requests.put(url=url, json={"reservation_status": "confirmed"})
+    def confirm_reservation(self, reservation_internal_id: int, property_internal_id: int, begin_datetime: str,
+                            end_datetime: str):
+        _id = crud.get_reservation_external_id(self.service_schema, reservation_internal_id)
+        if _id is not None:
+            # if reservation made on this service
+            url = self.url + f"reservations/{_id}"
+            print("Confirming reservation...", reservation_internal_id)
+            response = requests.put(url=url, json={"reservation_status": "confirmed"})
+            if response.status_code == 200:
+                crud.update_reservation(self.service_schema, reservation_internal_id,
+                                        response.json()["reservation_status"])
+            else:
+                print("Error confirming reservation")
+        else:
+            print("Creating already confirmed reservation as an event...", reservation_internal_id)
+            self.create_management_event(property_internal_id, reservation_internal_id, begin_datetime, end_datetime)
 
-    def delete_reservation(self, reservation_internal_id):
-        _id = get_reservation_external_id(self.service_schema, reservation_internal_id)
-        LOGGER.info("Deleting ClickAndGo reservation with: internal_id - '%s'; external_id '%s'", reservation_internal_id, _id)
-        url = self.url + f"reservations/{_id}"
-        LOGGER.info("DELETE request call in ClickAndGo API at '%s'...", url)
-        requests.delete(url=url)
+    def cancel_overlapping_reservation(self, reservation_internal_id: int):
+        _id = crud.get_reservation_external_id(self.service_schema, reservation_internal_id)
+        if _id is not None:
+            # if it's receiving this message, reservation was already made in this service
+            url = self.url + f"reservations/{_id}"
+            print("Cancelling reservation...", reservation_internal_id)
+            response = requests.put(url=url, json={"reservation_status": "canceled"})
+            if response.status_code == 200:
+                crud.update_reservation(self.service_schema, reservation_internal_id, response.json()["reservation_status"])
+            else:
+                print("Error cancelling reservation")
+        else:
+            print("Error reservation to cancel doesn't exist")
+
+    def cancel_reservation(self, reservation_internal_id: int, property_internal_id: int):
+        _id = crud.get_reservation_external_id(self.service_schema, reservation_internal_id)
+        if _id is not None:
+            # if reservation made on this service
+            url = self.url + f"reservations/{_id}"
+            print("Cancelling reservation...", reservation_internal_id)
+            response = requests.put(url=url, json={"reservation_status": "canceled"})
+            if response.status_code == 200:
+                crud.update_reservation(self.service_schema, reservation_internal_id, response.json()["reservation_status"])
+            else:
+                print("Error cancelling reservation")
+        else:
+            print("Deleting event corresponding to that reservation", reservation_internal_id)
+            self.delete_management_event(property_internal_id, reservation_internal_id)
+
 
     def import_new_properties(self, user):
         email = user.get("email")
