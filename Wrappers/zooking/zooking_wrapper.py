@@ -20,7 +20,7 @@ LOGGER.setLevel(logging.INFO)
 class ZookingWrapper(BaseWrapper):
     def __init__(self, queue: str) -> None:
         super().__init__(
-            url="http://localhost:8000/",
+            url="http://host.docker.internal:8000/",
             queue=queue,
             service_schema=Service.ZOOKING,
         )
@@ -115,7 +115,7 @@ class ZookingWrapper(BaseWrapper):
 
         external_id = crud.get_property_external_id(self.service_schema, property_internal_id)
         if external_id is None:
-            print(f"Property with internal_id {property_internal_id} not found in IdMapper database.")
+            LOGGER.error("Trying to delete a management event for a non-existing property with internal_id '%s'", property_internal_id)
             return
 
         url = self.url + f"properties/{external_id}"
@@ -187,7 +187,7 @@ class ZookingWrapper(BaseWrapper):
 
     def import_new_properties(self, user):
         email = user.get("email")
-        LOGGER.info("Importing Zooking NEW reservations for user '%s'", email)
+        LOGGER.info("Importing Zooking NEW properties for user '%s'", email)
         url = f"{self.url}properties?email={email}"
         LOGGER.info("GET request call in Zooking API at '%s'...", url)
         response = requests.get(url=url)
@@ -200,6 +200,6 @@ class ZookingWrapper(BaseWrapper):
                 if (crud.get_property_internal_id(self.service_schema, prop.get("id")) is None)
             ]
             return converted_properties
-        LOGGER.error("Importing new reservations failed with status code %s. Response: %s", response.status_code, response.content)
+        LOGGER.error("Importing new properties failed with status code %s. Response: %s", response.status_code, response.content)
         return []
 
