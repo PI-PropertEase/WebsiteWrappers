@@ -22,7 +22,7 @@ LOGGER.setLevel(logging.INFO)
 class EarthStayinWrapper(BaseWrapper):
     def __init__(self, queue: str) -> None:
         super().__init__(
-            url="http://localhost:8001/",
+            url="http://host.docker.internal:8001/",
             queue=queue,
             service_schema=Service.EARTHSTAYIN,
         )

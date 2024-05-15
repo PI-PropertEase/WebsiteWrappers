@@ -20,7 +20,7 @@ LOGGER.setLevel(logging.INFO)
 class ZookingWrapper(BaseWrapper):
     def __init__(self, queue: str) -> None:
         super().__init__(
-            url="http://localhost:8000/",
+            url="http://host.docker.internal:8000/",
             queue=queue,
             service_schema=Service.ZOOKING,
         )
