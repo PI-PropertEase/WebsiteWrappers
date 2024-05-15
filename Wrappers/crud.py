@@ -20,7 +20,7 @@ def get_property_internal_id(service: Service, external_property_id: int) -> int
         PropertyIdMapper = property_id_mapper_by_service[service]
         property_record = db.query(PropertyIdMapper).filter(
             PropertyIdMapper.external_id == external_property_id).first()
-        LOGGER.info("Querying '%s' with external_property_id '%s'. Response: '%s'", PropertyIdMapper, external_property_id, property_record.__dict__)
+        LOGGER.info("Querying '%s' with external_property_id '%s'. Response: '%s'", PropertyIdMapper, external_property_id, property_record)
         return property_record.internal_id if property_record is not None else property_record
 
 
