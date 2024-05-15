@@ -22,7 +22,7 @@ LOGGER.setLevel(logging.INFO)
 class EarthStayinWrapper(BaseWrapper):
     def __init__(self, queue: str) -> None:
         super().__init__(
-            url="http://host.docker.internal:8001/",
+            url="http://localhost:8001/",
             queue=queue,
             service_schema=Service.EARTHSTAYIN,
         )
@@ -45,6 +45,9 @@ class EarthStayinWrapper(BaseWrapper):
 
     def update_property(self, prop_internal_id: int, prop_update_parameters: dict):
         external_id = crud.get_property_external_id(self.service_schema, prop_internal_id)
+        if external_id is None:
+            LOGGER.info("Tried to update a property that doesn't exist in Earthstayin. property_internal_id: %s; property_external_id: %s", prop_internal_id, external_id)
+            return
         url = self.url + f"properties/{external_id}"
         LOGGER.info("Updating property in Earthstayin external API. Internal_id - '%s'; External_id - '%s'. Update parameters: %s", prop_internal_id, external_id, prop_update_parameters)
         requests.put(url=url, json=ProperteaseToEarthstayin.convert_property(prop_update_parameters))
