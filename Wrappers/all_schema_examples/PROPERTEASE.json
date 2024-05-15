@@ -3,6 +3,7 @@
   "user_id": 1,
   "title": "Coolest house ever",
   "address": "Braga (obvio que nao)",
+  "location": "Porto",
   "description": "Dont enter",
   "number_guests": 20,
   "square_meters": 4000,

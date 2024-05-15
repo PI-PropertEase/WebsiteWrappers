@@ -32,6 +32,7 @@ class ProperteaseToZooking:
         zooking_property["user_email"] = propertease_property.get("user_email")
         zooking_property["name"] = propertease_property.get("title")
         zooking_property["address"] = propertease_property.get("address")
+        zooking_property["location"] = propertease_property.get("location")
         zooking_property["description"] = propertease_property.get("description")
         zooking_property["curr_price"] = ProperteaseToZooking.convert_price(
             propertease_price=propertease_property.get("price"),

@@ -24,6 +24,7 @@ class ClickandgoToPropertease:
         propertease_property["user_email"] = clickandgo_property.get("user_email")
         propertease_property["title"] = clickandgo_property.get("name")
         propertease_property["address"] = clickandgo_property.get("address")
+        propertease_property["location"] = clickandgo_property.get("town")
         propertease_property["description"] = clickandgo_property.get("description")
         propertease_property["price"] = clickandgo_property.get("curr_price")
         propertease_property["number_guests"] = clickandgo_property.get("guest_num")

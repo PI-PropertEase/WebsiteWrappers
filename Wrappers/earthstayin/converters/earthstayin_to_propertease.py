@@ -25,6 +25,7 @@ class EarthstayinToPropertease:
         propertease_property["user_email"] = earthstayin_property.get("user_email")
         propertease_property["title"] = earthstayin_property.get("name")
         propertease_property["address"] = earthstayin_property.get("address")
+        propertease_property["location"] = earthstayin_property.get("city")
         propertease_property["description"] = earthstayin_property.get("description")
         propertease_property["price"] = earthstayin_property.get("curr_price")
         propertease_property["number_guests"] = earthstayin_property.get("number_of_guests")
