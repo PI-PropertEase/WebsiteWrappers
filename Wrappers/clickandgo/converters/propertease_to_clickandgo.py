@@ -33,6 +33,7 @@ class ProperteaseToClickandgo:
         clickandgo_property["user_email"] = propertease_property.get("user_email")
         clickandgo_property["name"] = propertease_property.get("title")
         clickandgo_property["address"] = propertease_property.get("address")
+        clickandgo_property["town"] = propertease_property.get("location")
         clickandgo_property["description"] = propertease_property.get("description")
         clickandgo_property["curr_price"] = ProperteaseToClickandgo.convert_price(
             propertease_price=propertease_property.get("price"),
