@@ -9,4 +9,4 @@ RUN apt-get -y update \
     && rm -rf /var/lib/apt/lists/* /var/cache/apt/archives/* \
     && pip install --no-cache-dir --upgrade -r requirements.txt
 
-CMD ["sh", "-c", "python3 -m Wrappers.earthstayin.earthstayin_regular_handler && python3 -m Wrappers.earthstayin.earthstayin_scheduled_handler"]
+CMD ["sh", "-c", "python3 -m Wrappers.earthstayin.earthstayin_regular_handler & python3 -m Wrappers.earthstayin.earthstayin_scheduled_handler"]
