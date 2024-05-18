@@ -24,15 +24,9 @@ def handle_recv(channel, method, properties, body, wrapper):
     LOGGER.info("%s - received message", wrapper.service_schema.name)
     body = message.body
     match message.message_type:
-        case MessageType.PROPERTY_CREATE:
-            wrapper.create_property(body)
         case MessageType.PROPERTY_UPDATE:
             LOGGER.info("%s - MessageType: PROPERTY_UPDATE.", wrapper.service_schema.name)
             wrapper.update_property(body["internal_id"], body["update_parameters"])
-        case MessageType.PROPERTY_DELETE:
-            wrapper.delete_property(body)
-        case MessageType.PROPERTY_CREATE:
-            wrapper.create_property(body)
         case MessageType.PROPERTY_IMPORT:
             LOGGER.info("%s - MessageType: PROPERTY_IMPORT. Body: %s", wrapper.service_schema.name, body)
             properties = wrapper.import_properties(body)
