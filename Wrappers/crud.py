@@ -42,7 +42,7 @@ def set_property_mapped_id(service: Service, old_internal_id, new_internal_id):
         property_to_update_or_delete = db.query(IdMapperService).get(old_internal_id)
         if property_with_same_internal_id is not None:
             # delete
-            LOGGER.info("Deleting property with internal_id '%s' from '%s'", new_internal_id, IdMapperService)
+            LOGGER.info("Deleting property with internal_id '%s' from '%s'", old_internal_id, IdMapperService)
             db.delete(property_to_update_or_delete)
         else:
             # update
