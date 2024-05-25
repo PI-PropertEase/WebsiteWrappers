@@ -1,10 +1,13 @@
+import logging
+
 from ProjectUtils.MessagingService.schemas import Service
 from Wrappers.base_wrapper.utils import invert_map
-from Wrappers.models import set_property_internal_id, \
-    get_property_internal_id, create_reservation, \
-    ReservationIdMapper, ReservationStatus, update_reservation
+from Wrappers.models import ReservationIdMapper, ReservationStatus
+from Wrappers.crud import get_property_internal_id, set_property_internal_id, create_reservation, update_reservation
 from Wrappers.zooking.converters.propertease_to_zooking import ProperteaseToZooking
 
+LOGGER = logging.getLogger(__name__)
+LOGGER.setLevel(logging.INFO)
 
 class ZookingToPropertease:
     service = ProperteaseToZooking.service
@@ -14,11 +17,13 @@ class ZookingToPropertease:
 
     @staticmethod
     def convert_property(zooking_property):
+        LOGGER.debug("INPUT CONVERTING PROPERTY - Zooking property: %s", zooking_property)
         propertease_property = dict()
         propertease_property["_id"] = set_property_internal_id(ZookingToPropertease.service, zooking_property.get("id"))
         propertease_property["user_email"] = zooking_property.get("user_email")
         propertease_property["title"] = zooking_property.get("name")
         propertease_property["address"] = zooking_property.get("address")
+        propertease_property["location"] = zooking_property.get("location")
         propertease_property["description"] = zooking_property.get("description")
         propertease_property["price"] = zooking_property.get("curr_price")
         propertease_property["number_guests"] = zooking_property.get("number_of_guests")
@@ -42,6 +47,7 @@ class ZookingToPropertease:
         propertease_property["cancellation_policy"] = ""  # not supported in zooking
         propertease_property["contacts"] = []  # not supported in Zooking
 
+        LOGGER.debug("OUTPUT CONVERTING PROPERTY - PropertEase property: %s", propertease_property)
         return propertease_property
 
     @staticmethod
@@ -104,10 +110,12 @@ class ZookingToPropertease:
 
     @staticmethod
     def convert_reservation(zooking_reservation, owner_email: str, reservation: ReservationIdMapper = None):
-        print("\nzooking_reservation", zooking_reservation)
+        LOGGER.debug("INPUT CONVERTING RESERVATIONS - Zooking reservation: %s", zooking_reservation)
         reservation_status = zooking_reservation.get("reservation_status")
         if reservation is not None:
             reservation_id = reservation.internal_id
+            LOGGER.info("Existing reservation with status '%s' detected. New reservation status: '%s'", 
+                        reservation.reservation_status, reservation_status)
             update_reservation(ZookingToPropertease.service, reservation_id, reservation_status)
         else:
             reservation_id = create_reservation(ZookingToPropertease.service, zooking_reservation.get("id"), reservation_status).internal_id
@@ -124,5 +132,5 @@ class ZookingToPropertease:
             "client_phone": zooking_reservation.get("client_phone"),
             "cost": zooking_reservation.get("cost"),
         }
-        print("\npropertease_reservation", propertease_reservation)
+        LOGGER.debug("OUTPUT CONVERTING RESERVATION - PropertEase reservation: %s", propertease_reservation)
         return propertease_reservation

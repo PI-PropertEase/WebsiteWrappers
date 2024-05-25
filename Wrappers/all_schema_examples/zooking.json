@@ -3,6 +3,7 @@
   "user_email": "alicez@gmail.com",
   "name": "Poente Azul",
   "address": "Rua 5678",
+  "location": "Aveiro",
   "curr_price": 24,
   "description": "A casa mais azul desde 1999",
   "number_of_guests": 4,

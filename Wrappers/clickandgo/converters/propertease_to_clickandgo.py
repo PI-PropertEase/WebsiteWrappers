@@ -1,5 +1,10 @@
+import logging
+
 from ProjectUtils.MessagingService.schemas import Service
-from Wrappers.models import get_property_external_id
+from Wrappers.crud import get_property_external_id
+
+LOGGER = logging.getLogger(__name__)
+LOGGER.setLevel(logging.INFO)
 
 
 class ProperteaseToClickandgo:
@@ -20,6 +25,7 @@ class ProperteaseToClickandgo:
 
     @staticmethod
     def convert_property(propertease_property):
+        LOGGER.debug("INPUT CONVERTING PROPERTY - PropertEase property: %s", propertease_property)
         clickandgo_property = dict()
         property_id = clickandgo_property.get("_id")
         clickandgo_property["id"] = None if property_id is None else get_property_external_id(ProperteaseToClickandgo.service,
@@ -27,6 +33,7 @@ class ProperteaseToClickandgo:
         clickandgo_property["user_email"] = propertease_property.get("user_email")
         clickandgo_property["name"] = propertease_property.get("title")
         clickandgo_property["address"] = propertease_property.get("address")
+        clickandgo_property["town"] = propertease_property.get("location")
         clickandgo_property["description"] = propertease_property.get("description")
         clickandgo_property["curr_price"] = ProperteaseToClickandgo.convert_price(
             propertease_price=propertease_property.get("price"),
@@ -47,13 +54,12 @@ class ProperteaseToClickandgo:
             if (propertease_house_rules := propertease_property.get("house_rules")) is None \
             else ProperteaseToClickandgo.convert_house_rules(propertease_house_rules)
         clickandgo_property["additional_info"] = propertease_property.get("additional_info")
-        clickandgo_property["house_manager"] = None \
+        clickandgo_property["house_managers"] = None \
             if (propertease_contacts := propertease_property.get("contacts")) is None \
             else ProperteaseToClickandgo.convert_contacts(propertease_contacts)
         # the following elements are not supported in clickandgo -> no need to convert:
         # - cancellation_policy
-        print(f"\npropertease_property {propertease_property}\n")
-        print(f"clickandgo_property {clickandgo_property}\n")
+        LOGGER.debug("OUTPUT CONVERTING PROPERTY - ClickAndGo property: %s", clickandgo_property)
         return clickandgo_property
 
     @staticmethod
@@ -106,11 +112,14 @@ class ProperteaseToClickandgo:
 
     @staticmethod
     def convert_contacts(propertease_contacts):
-        return {
-                "name": propertease_contacts[0].get("name"),
-                "phone_number": propertease_contacts[0].get("phone_number"),
+        clickandgo_contacts = []
+        for contact in propertease_contacts:
+            clickandgo_contacts.append({
+                "name": contact.get("name"),
+                "phone_number": contact.get("phone_number"),
                 "languages": []
-            } if len(propertease_contacts) > 0 else {}
+            })
+        return clickandgo_contacts
 
     @staticmethod
     def convert_price(propertease_price: float, after_commission: bool) -> float:

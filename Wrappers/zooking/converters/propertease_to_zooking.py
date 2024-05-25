@@ -1,5 +1,10 @@
+import logging
+
 from ProjectUtils.MessagingService.schemas import Service
-from Wrappers.models import get_property_external_id
+from Wrappers.crud import get_property_external_id
+
+LOGGER = logging.getLogger(__name__)
+LOGGER.setLevel(logging.INFO)
 
 
 class ProperteaseToZooking:
@@ -19,6 +24,7 @@ class ProperteaseToZooking:
 
     @staticmethod
     def convert_property(propertease_property):
+        LOGGER.debug("INPUT CONVERTING PROPERTY - PropertEase property: %s", propertease_property)
         zooking_property = dict()
         property_id = zooking_property.get("_id")
         zooking_property["id"] = None if property_id is None else get_property_external_id(ProperteaseToZooking.service,
@@ -26,6 +32,7 @@ class ProperteaseToZooking:
         zooking_property["user_email"] = propertease_property.get("user_email")
         zooking_property["name"] = propertease_property.get("title")
         zooking_property["address"] = propertease_property.get("address")
+        zooking_property["location"] = propertease_property.get("location")
         zooking_property["description"] = propertease_property.get("description")
         zooking_property["curr_price"] = ProperteaseToZooking.convert_price(
             propertease_price=propertease_property.get("price"),
@@ -43,12 +50,12 @@ class ProperteaseToZooking:
             if (propertease_amenities := propertease_property.get("amenities")) is None \
             else ProperteaseToZooking.convert_amenities(propertease_amenities)
         zooking_property["additional_info"] = propertease_property.get("additional_info")
+        zooking_property["closed_time_frames"] = propertease_property.get("closed_time_frames")
         # the following elements are not supported in zooking -> no need to convert:
         # - house rules
         # - cancellation_policy
         # - contacts
-        print(f"\npropertease_property {propertease_property}\n")
-        print(f"zooking_property {zooking_property}\n")
+        LOGGER.debug("OUTPUT CONVERTING PROPERTY - Zooking property: %s", zooking_property)
         return zooking_property
 
     @staticmethod
