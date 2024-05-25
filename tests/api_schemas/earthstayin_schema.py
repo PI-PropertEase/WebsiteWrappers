@@ -2,7 +2,7 @@ from enum import Enum
 from typing import Optional
 
 from .base_schema import PropertyBase
-from pydantic import BaseModel
+from pydantic import BaseModel, ConfigDict
 
 
 class EarthStayinAmenity(str, Enum):
@@ -44,7 +44,9 @@ class EarthStayinHouseRules(BaseModel):
 
 
 class EarthStayinPropertyBase(PropertyBase):
+    model_config = ConfigDict(extra="forbid")
     description: str
+    city: str
     number_of_guests: int
     square_meters: int
     bedrooms: dict[str, list[EarthStayinBedroom]]

@@ -1,8 +1,8 @@
 from enum import Enum
 from typing import Optional
 
-from .base_schema import PropertyBase
-from pydantic import BaseModel
+from .base_schema import PropertyBase, ClosedTimeFrame
+from pydantic import BaseModel, ConfigDict
 
 
 class ZookingAmenity(str, Enum):
@@ -34,10 +34,13 @@ class ZookingBathroom(BaseModel):
 
 
 class ZookingPropertyBase(PropertyBase):
+    model_config = ConfigDict(extra="forbid")
     description: str
+    location: str
     number_of_guests: int
     square_meters: int
     bedrooms: dict[str, list[ZookingBedroom]]
     bathrooms: list[ZookingBathroom]
     amenities: list[ZookingAmenity]
     additional_info: str
+    closed_time_frames: dict[int, ClosedTimeFrame]

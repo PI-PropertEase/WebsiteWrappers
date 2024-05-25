@@ -1,8 +1,8 @@
 from enum import Enum
 from typing import Optional
 
-from .base_schema import PropertyBase
-from pydantic import BaseModel
+from .base_schema import ClosedTimeFrame, PropertyBase
+from pydantic import BaseModel, ConfigDict
 
 
 class CNGAmenity(str, Enum):
@@ -50,7 +50,9 @@ class CNGHouseRules(BaseModel):
 
 
 class CNGPropertyBase(PropertyBase):
+    model_config = ConfigDict(extra="forbid")
     description: str
+    town: str
     guest_num: int
     house_area: int
     bedrooms: dict[str, list[CNGBedroom]]
@@ -59,4 +61,5 @@ class CNGPropertyBase(PropertyBase):
     house_rules: CNGHouseRules
     additional_info: str
     cancellation_policy: str
-    house_manager: CNGUser
+    house_managers: list[CNGUser]
+    closed_time_frames: dict[int, ClosedTimeFrame]

@@ -34,3 +34,7 @@ class ReservationBase(BaseModel):
         if v <= values['arrival']:
             raise ValueError('Departure date must be after arrival date')
         return v
+
+class ClosedTimeFrame(BaseModel):
+    begin_datetime: datetime
+    end_datetime: datetime
