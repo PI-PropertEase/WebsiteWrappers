@@ -1,10 +1,11 @@
 {
   "id": "661a7e5ab7bd0512178cf014",
-  "user_id": 1,
+  "user_email": "someemail@gmail.com",
   "title": "Coolest house ever",
   "address": "Braga (obvio que nao)",
   "location": "Porto",
   "description": "Dont enter",
+  "price": 100,
   "number_guests": 20,
   "square_meters": 4000,
   "bedrooms": {
@@ -30,6 +31,7 @@
     "pool",
     "kitchen"
   ],
+  "after_commission": false,
   "house_rules": {
     "check_in": {
       "begin_time": "10:59",
@@ -54,5 +56,8 @@
       "name": "Alvaro Barbosa",
       "phone_number": "+351969314716"
     }
-  ]
+  ],
+  "services":[],
+  "recommended_price": 95,
+  "update_price_automatically": false
 }
