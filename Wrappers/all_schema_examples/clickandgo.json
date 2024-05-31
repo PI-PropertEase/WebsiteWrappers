@@ -3,6 +3,7 @@
   "user_email": "alicez@gmail.com",
   "name": "Poente Azul",
   "address": "Rua 5678",
+  "town": "Aveiro",
   "curr_price": 22,
   "description": "Interesting house",
   "guest_num": 5,
@@ -29,6 +30,7 @@
   },
   "bathrooms": [
     {
+      "name": "Underground Bathroom",
       "bathroom_fixtures": [
         "toilet",
         "tub",
@@ -52,12 +54,14 @@
   },
   "additional_info": "Somos fixes",
   "cancellation_policy": "Não há reembolsos",
-  "house_manager": {
-    "name": "Alice Zqt",
-    "phone_number": "+351920920920",
-    "languages": [
-      "Portuguese",
-      "English"
-    ]
-  }
+  "house_managers": [
+    {
+      "name": "Alice Zqt",
+      "phone_number": "+351920920920",
+      "languages": [
+        "Portuguese",
+        "English"
+      ]
+    }
+  ]
 }
